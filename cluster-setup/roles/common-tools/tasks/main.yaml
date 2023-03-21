@@ -18,7 +18,6 @@
         - jq
         - lsof
         - neovim
-        - ripgrep
         - rlwrap
         - rsync
         - sudo
