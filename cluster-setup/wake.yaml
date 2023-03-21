@@ -1,0 +1,9 @@
+---
+- hosts: ubuntu
+  gather_facts: false
+
+  tasks:
+    - name: wake servers
+      community.general.wakeonlan:
+        mac: "{{ mac_addr }}"
+      delegate_to: localhost

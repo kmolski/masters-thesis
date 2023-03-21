@@ -1,0 +1,8 @@
+---
+- name: restart SSH daemon
+  ansible.builtin.service:
+    name: sshd
+    state: restarted
+  async: 30
+  poll: 5
+  become: true

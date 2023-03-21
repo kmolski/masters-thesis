@@ -1,0 +1,8 @@
+---
+- hosts: ubuntu
+  gather_facts: false
+
+  tasks:
+    - name: suspend servers
+      ansible.builtin.shell: "systemctl suspend"
+      become: true

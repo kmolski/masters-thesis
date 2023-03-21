@@ -1,0 +1,22 @@
+---
+- block:
+  - name: ensure secure SSH daemon configuration
+    ansible.builtin.lineinfile:
+      dest: /etc/ssh/sshd_config
+      regexp: "^(# *)?{{ item.key }}"
+      line: "{{ item.key }} {{ item.value }}"
+      state: present
+      validate: "sshd -t -f %s"
+    with_items:
+      - key: "PermitRootLogin"
+        value: "no"
+      - key: "PasswordAuthentication"
+        value: "no"
+      - key: "KbdInteractiveAuthentication"
+        value: "no"
+      - key: "AuthenticationMethods"
+        value: "publickey"
+    when: headless
+    notify: restart SSH daemon
+
+  become: true

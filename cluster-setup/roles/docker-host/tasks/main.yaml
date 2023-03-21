@@ -1,0 +1,22 @@
+---
+- block:
+  - name: ensure Docker & docker-compose (Debian)
+    ansible.builtin.apt:
+      name:
+        - docker.io
+        - docker-compose
+    when: ansible_facts.os_family == "Debian"
+
+  - name: ensure {{ ansible_user }} is assigned to docker group
+    ansible.builtin.user:
+      name: "{{ ansible_user }}"
+      groups: docker
+      append: yes
+
+  - name: ensure enabled & started Docker daemon
+    ansible.builtin.service:
+      name: docker
+      enabled: yes
+      state: started
+
+  become: true

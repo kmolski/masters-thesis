@@ -1,0 +1,16 @@
+---
+- hosts: ubuntu
+
+  pre_tasks:
+    - name: ensure up-to-date packages
+      ansible.builtin.import_tasks: includes/updated/tasks.yaml
+
+  roles:
+    - role: roles/common-tools
+    - role: roles/security-config
+    - role: roles/docker-host
+
+  tasks:
+    - name: enable Wake-on-LAN
+      ansible.builtin.shell: "ethtool -s {{ ansible_default_ipv4.interface }} wol g"
+      become: true

@@ -1,0 +1,49 @@
+---
+- block:
+  - name: remove unused utilities
+    ansible.builtin.package:
+      name:
+        - cloud-init
+        - multipath-tools
+        - unattended-upgrades
+      state: absent
+
+  - name: ensure common CLI tools
+    ansible.builtin.package:
+      name:
+        - curl
+        - ethtool
+        - git
+        - htop
+        - jq
+        - lsof
+        - neovim
+        - ripgrep
+        - rlwrap
+        - rsync
+        - sudo
+        - tmux
+      state: present
+
+  - name: ensure hostname matches inventory name
+    ansible.builtin.hostname:
+      name: "{{ inventory_hostname }}"
+
+  - name: ensure specified host timezone
+    community.general.timezone:
+      name: "{{ timezone }}"
+
+  become: true
+
+- name: ensure global git configuration
+  community.general.git_config:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    scope: global
+  with_items:
+    - name: user.name
+      value: "{{ git_username }}"
+    - name: user.email
+      value: "{{ git_email }}"
+    - name: core.editor
+      value: nvim
