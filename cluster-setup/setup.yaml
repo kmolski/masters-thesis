@@ -1,5 +1,5 @@
 ---
-- hosts: ubuntu
+- hosts: jetson
 
   pre_tasks:
     - name: ensure up-to-date packages
@@ -11,6 +11,8 @@
     - role: roles/docker-host
 
   tasks:
-    - name: enable Wake-on-LAN
-      ansible.builtin.shell: "ethtool -s {{ ansible_default_ipv4.interface }} wol g"
+    - name: disable graphical login manager
+      ansible.builtin.service:
+        name: gdm
+        enabled: false
       become: true

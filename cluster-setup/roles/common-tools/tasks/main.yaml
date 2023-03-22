@@ -11,17 +11,9 @@
   - name: ensure common CLI tools
     ansible.builtin.package:
       name:
-        - curl
-        - ethtool
         - git
-        - htop
-        - jq
-        - lsof
-        - neovim
-        - rlwrap
         - rsync
         - sudo
-        - tmux
       state: present
 
   - name: ensure hostname matches inventory name

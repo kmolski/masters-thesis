@@ -4,7 +4,6 @@
     ansible.builtin.apt:
       name:
         - docker.io
-        - docker-compose
     when: ansible_facts.os_family == "Debian"
 
   - name: ensure {{ ansible_user }} is assigned to docker group
