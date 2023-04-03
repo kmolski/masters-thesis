@@ -63,10 +63,10 @@
         line: 'export JAVA_HOME=$(readlink -f /usr/bin/java | sed "s:bin/java::")'
       become: true
 
-    - name: include Hadoop binaries in PATH variable
+    - name: include Hadoop paths in global environment
       ansible.builtin.copy:
-        dest: /etc/profile.d/hadoop.sh
-        content: "PATH=$PATH:/usr/local/hadoop/bin:/usr/local/hadoop/sbin"
+        dest: /etc/environment
+        src: "etc/environment"
         mode: "0644"
       become: true
 
@@ -100,11 +100,13 @@
       with_items:
         - "core-site.xml"
         - "hdfs-site.xml"
+        - "mapred-site.xml"
 
     - name: upload worker configuration
       ansible.builtin.copy:
         dest: /usr/local/hadoop/etc/hadoop/workers
         src: "etc/workers-{{ hadoop_master }}"
+
 
 - hosts: master
   tags: hdfs_format
@@ -112,9 +114,18 @@
   tasks:
     - name: format HDFS name nodes
       ansible.builtin.shell:
-        cmd: |
-          set -eu -o pipefail
-          . /etc/profile.d/hadoop.sh
-          hdfs namenode -format
+        cmd: hdfs namenode -format
         executable: /bin/bash
         creates: /usr/local/hadoop/data/nameNode
+
+
+- hosts: workers
+  tags: yarn_setup
+
+  tasks:
+    - name: upload YARN XML configuration for worker nodes
+      ansible.builtin.template:
+        dest: "/usr/local/hadoop/etc/hadoop/{{ item }}"
+        src: "etc/{{ item }}"
+      with_items:
+        - "yarn-site.xml"

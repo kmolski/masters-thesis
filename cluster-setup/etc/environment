@@ -1,0 +1,7 @@
+PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/usr/local/hadoop/bin:/usr/local/hadoop/sbin"
+HADOOP_HOME="/usr/local/hadoop"
+HADOOP_COMMON_HOME="/usr/local/hadoop"
+HADOOP_CONF_DIR="/usr/local/hadoop/etc/hadoop"
+HADOOP_HDFS_HOME="/usr/local/hadoop"
+HADOOP_MAPRED_HOME="/usr/local/hadoop"
+HADOOP_YARN_HOME="/usr/local/hadoop"
