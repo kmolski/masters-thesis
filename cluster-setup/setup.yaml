@@ -1,5 +1,6 @@
 ---
 - hosts: jetson
+  tags: os_setup
 
   pre_tasks:
     - name: ensure up-to-date packages
@@ -11,8 +12,109 @@
     - role: roles/docker-host
 
   tasks:
-    - name: disable graphical login manager
-      ansible.builtin.service:
-        name: gdm
-        enabled: false
+    - name: get systemd default target
+      ansible.builtin.command: systemctl get-default
+      changed_when: false
+      register: default_target
+
+    - name: disable graphical mode
+      ansible.builtin.command: systemctl set-default multi-user.target
+      when: "'multi-user' not in default_target.stdout"
       become: true
+
+
+- hosts: jetson
+  tags: hadoop_setup
+
+  tasks:
+    - name: check if Hadoop directory exists
+      ansible.builtin.stat:
+        path: "/usr/local/{{ hadoop_name }}"
+      register: hadoop_dir
+
+    - name: download Hadoop tarball
+      ansible.builtin.get_url:
+        url: "{{ hadoop_tarball }}"
+        dest: /tmp/hadoop.tar.gz
+      when: not hadoop_dir.stat.exists
+
+    - name: install Hadoop tarball
+      ansible.builtin.unarchive:
+        src: /tmp/hadoop.tar.gz
+        dest: /usr/local
+        owner: "{{ ansible_user }}"
+        remote_src: true
+      when: not hadoop_dir.stat.exists
+      become: true
+
+    - name: link Hadoop folder
+      ansible.builtin.file:
+        src: "/usr/local/{{ hadoop_name }}"
+        dest: /usr/local/hadoop
+        owner: "{{ ansible_user }}"
+        group: root
+        state: link
+      become: true
+
+    - name: set dynamic JAVA_HOME for Hadoop
+      ansible.builtin.lineinfile:
+        dest: /usr/local/hadoop/etc/hadoop/hadoop-env.sh
+        regexp: "^(# *)?export JAVA_HOME"
+        line: 'export JAVA_HOME=$(readlink -f /usr/bin/java | sed "s:bin/java::")'
+      become: true
+
+    - name: include Hadoop binaries in PATH variable
+      ansible.builtin.copy:
+        dest: /etc/profile.d/hadoop.sh
+        content: "PATH=$PATH:/usr/local/hadoop/bin:/usr/local/hadoop/sbin"
+        mode: "0644"
+      become: true
+
+    - name: add cluster hostnames to /etc/hosts
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        regexp: ".*\t{{ item }}\t{{ item }}"
+        line: "{{ hostvars[item]['ansible_default_ipv4']['address'] }}\t{{ item }}\t{{ item }}"
+        state: present
+        backup: yes
+      with_items: "{{ groups['jetson'] }}"
+      become: true
+
+    - name: upload private SSH keys
+      ansible.builtin.copy:
+        dest: "/home/{{ ansible_user }}/.ssh/id_ed25519"
+        src: "keys/id-{{ inventory_hostname }}"
+        mode: "0600"
+
+    - name: upload authorized SSH keys for all nodes
+      ansible.posix.authorized_key:
+        user: "{{ ansible_user }}"
+        state: present
+        key: "{{ lookup('file', 'keys/id-{{ item }}.pub') }}"
+      with_items: "{{ groups['jetson'] }}"
+
+    - name: upload XML configuration for all nodes
+      ansible.builtin.template:
+        dest: "/usr/local/hadoop/etc/hadoop/{{ item }}"
+        src: "etc/{{ item }}"
+      with_items:
+        - "core-site.xml"
+        - "hdfs-site.xml"
+
+    - name: upload worker configuration
+      ansible.builtin.copy:
+        dest: /usr/local/hadoop/etc/hadoop/workers
+        src: "etc/workers-{{ hadoop_master }}"
+
+- hosts: master
+  tags: hdfs_format
+
+  tasks:
+    - name: format HDFS name nodes
+      ansible.builtin.shell:
+        cmd: |
+          set -eu -o pipefail
+          . /etc/profile.d/hadoop.sh
+          hdfs namenode -format
+        executable: /bin/bash
+        creates: /usr/local/hadoop/data/nameNode
