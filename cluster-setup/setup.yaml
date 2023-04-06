@@ -101,6 +101,7 @@
         - "core-site.xml"
         - "hdfs-site.xml"
         - "mapred-site.xml"
+        - "yarn-site.xml"
 
     - name: upload worker configuration
       ansible.builtin.copy:
@@ -117,15 +118,3 @@
         cmd: hdfs namenode -format
         executable: /bin/bash
         creates: /usr/local/hadoop/data/nameNode
-
-
-- hosts: workers
-  tags: yarn_setup
-
-  tasks:
-    - name: upload YARN XML configuration for worker nodes
-      ansible.builtin.template:
-        dest: "/usr/local/hadoop/etc/hadoop/{{ item }}"
-        src: "etc/{{ item }}"
-      with_items:
-        - "yarn-site.xml"
