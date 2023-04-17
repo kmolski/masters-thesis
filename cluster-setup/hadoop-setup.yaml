@@ -113,8 +113,14 @@
   tags: hdfs_format
 
   tasks:
-    - name: format HDFS name nodes
+    - name: format HDFS name node
       ansible.builtin.shell:
-        cmd: hdfs namenode -format
+        cmd: hdfs namenode -format -force
         executable: /bin/bash
         creates: /usr/local/hadoop/data/nameNode
+
+
+- hosts: jetson
+  tags: spark_setup
+
+  tasks: []
