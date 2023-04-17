@@ -23,6 +23,11 @@
         - openjdk-11-jdk
       state: present
 
+  - name: install Scala 2.11
+    ansible.builtin.package:
+      name: scala
+      state: present
+
   - name: ensure hostname matches inventory name
     ansible.builtin.hostname:
       name: "{{ inventory_hostname }}"

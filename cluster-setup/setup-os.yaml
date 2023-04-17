@@ -1,0 +1,22 @@
+---
+- hosts: jetson
+
+  pre_tasks:
+    - name: ensure up-to-date packages
+      ansible.builtin.import_tasks: includes/updated/tasks.yaml
+
+  roles:
+    - role: roles/common-tools
+    - role: roles/security-config
+    - role: roles/docker-host
+
+  tasks:
+    - name: get systemd default target
+      ansible.builtin.command: systemctl get-default
+      changed_when: false
+      register: default_target
+
+    - name: disable graphical mode
+      ansible.builtin.command: systemctl set-default multi-user.target
+      when: "'multi-user' not in default_target.stdout"
+      become: true
