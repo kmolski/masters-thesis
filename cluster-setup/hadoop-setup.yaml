@@ -70,11 +70,19 @@
         mode: "0644"
       become: true
 
+    - name: remove hostname to 127.0.1.1 bind from /etc/hosts
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        regexp: ".*\t{{ inventory_hostname }}"
+        state: absent
+        backup: yes
+      become: true
+
     - name: add cluster hostnames to /etc/hosts
       ansible.builtin.lineinfile:
         path: /etc/hosts
-        regexp: ".*\t{{ item }}\t{{ item }}"
-        line: "{{ hostvars[item]['ansible_default_ipv4']['address'] }}\t{{ item }}\t{{ item }}"
+        regexp: ".*\t{{ item }}"
+        line: "{{ hostvars[item]['ansible_default_ipv4']['address'] }}\t{{ item }}"
         state: present
         backup: yes
       with_items: "{{ groups['jetson'] }}"
@@ -118,9 +126,3 @@
         cmd: hdfs namenode -format -force
         executable: /bin/bash
         creates: /usr/local/hadoop/data/nameNode
-
-
-- hosts: jetson
-  tags: spark_setup
-
-  tasks: []
