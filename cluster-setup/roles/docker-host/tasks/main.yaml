@@ -1,9 +1,8 @@
 ---
 - block:
-  - name: ensure Docker & docker-compose (Debian)
+  - name: ensure Docker CE (Debian)
     ansible.builtin.apt:
-      name:
-        - docker.io
+      name: docker.io
     when: ansible_facts.os_family == "Debian"
 
   - name: ensure {{ ansible_user }} is assigned to docker group
