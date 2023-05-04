@@ -50,14 +50,3 @@
       ansible.builtin.copy:
         dest: /usr/local/spark/conf/slaves
         src: "etc/slaves-{{ spark_master }}"
-
-
-#- hosts: master
-#  tags: hdfs_format
-#
-#  tasks:
-#    - name: format HDFS name node
-#      ansible.builtin.shell:
-#        cmd: hdfs namenode -format -force
-#        executable: /bin/bash
-#        creates: /usr/local/hadoop/data/nameNode
