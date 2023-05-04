@@ -1,0 +1,63 @@
+---
+- hosts: jetson
+  tags: spark_setup
+
+  tasks:
+    - name: check if Spark directory exists
+      ansible.builtin.stat:
+        path: "/usr/local/{{ spark_name }}"
+      register: spark_dir
+
+    - name: download Spark tarball
+      ansible.builtin.get_url:
+        url: "{{ spark_tarball }}"
+        dest: /tmp/spark.tgz
+      when: not spark_dir.stat.exists
+
+    - name: install Spark tarball
+      ansible.builtin.unarchive:
+        src: /tmp/spark.tgz
+        dest: /usr/local
+        owner: "{{ ansible_user }}"
+        remote_src: true
+      when: not spark_dir.stat.exists
+      become: true
+
+    - name: link Spark folder
+      ansible.builtin.file:
+        src: "/usr/local/{{ spark_name }}"
+        dest: /usr/local/spark
+        owner: "{{ ansible_user }}"
+        group: root
+        state: link
+      become: true
+
+    - name: include Spark paths in global environment
+      ansible.builtin.copy:
+        dest: /etc/environment
+        src: "etc/environment"
+        mode: "0644"
+      become: true
+
+    - name: upload configuration for all nodes
+      ansible.builtin.template:
+        dest: "/usr/local/spark/conf/{{ item }}"
+        src: "etc/{{ item }}"
+      with_items:
+        - "spark-env.sh"
+
+    - name: upload worker configuration
+      ansible.builtin.copy:
+        dest: /usr/local/spark/conf/slaves
+        src: "etc/slaves-{{ spark_master }}"
+
+
+#- hosts: master
+#  tags: hdfs_format
+#
+#  tasks:
+#    - name: format HDFS name node
+#      ansible.builtin.shell:
+#        cmd: hdfs namenode -format -force
+#        executable: /bin/bash
+#        creates: /usr/local/hadoop/data/nameNode
