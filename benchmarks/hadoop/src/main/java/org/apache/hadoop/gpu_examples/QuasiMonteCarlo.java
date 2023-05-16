@@ -54,7 +54,7 @@ import org.apache.hadoop.util.ToolRunner;
  * $f(x)=1$ if $(2x_1-1)^2+(2x_2-1)^2 &lt;= 1$ and $f(x)=0$, otherwise.
  * It is easy to see that Pi is equal to $4I$.
  * So an approximation of Pi is obtained once $I$ is evaluated numerically.
- * 
+ *
  * There are better methods for computing Pi.
  * We emphasize numerical approximation of arbitrary integrals in this example.
  * For computing many digits of Pi, consider using bbp.
@@ -73,50 +73,49 @@ import org.apache.hadoop.util.ToolRunner;
  * the value (Area of the circle)/(Area of the square) = $I$,
  * where the area of the inscribed circle is Pi/4
  * and the area of unit square is 1.
- * Finally, the estimated value of Pi is 4(numInside/numTotal).  
+ * Finally, the estimated value of Pi is 4(numInside/numTotal).
  */
 public class QuasiMonteCarlo extends Configured implements Tool {
   static final String DESCRIPTION
       = "A map/reduce program that estimates Pi using a quasi-Monte Carlo method.";
   /** tmp directory for input/output */
   static private final String TMP_DIR_PREFIX = QuasiMonteCarlo.class.getSimpleName();
-  
+
   /** 2-dimensional Halton sequence {H(i)},
    * where H(i) is a 2-dimensional point and i >= 1 is the index.
-   * Halton sequence is used to generate sample points for Pi estimation. 
+   * Halton sequence is used to generate sample points for Pi estimation.
    */
-  private static class HaltonSequence {
-    /** Bases */
-    static final int[] P = {2, 3}; 
-    /** Maximum number of digits allowed */
-    static final int[] K = {63, 40}; 
+  public static class CpuHaltonSequence {
+    static final int[] BASES = {2, 3};
+    static final int[] MAX_DIGITS = {63, 40};
+    static final int DIMENSIONS = BASES.length;
 
     private long index;
     private double[] x;
     private double[][] q;
     private int[][] d;
 
-    /** Initialize to H(startindex),
-     * so the sequence begins with H(startindex+1).
+    /** Initialize to H(startIndex),
+     * so the sequence begins with H(startIndex+1).
      */
-    HaltonSequence(long startindex) {
-      index = startindex;
-      x = new double[K.length];
-      q = new double[K.length][];
-      d = new int[K.length][];
-      for(int i = 0; i < K.length; i++) {
-        q[i] = new double[K[i]];
-        d[i] = new int[K[i]];
+    public CpuHaltonSequence(long startIndex) {
+      index = startIndex;
+      x = new double[DIMENSIONS];
+      q = new double[DIMENSIONS][];
+      d = new int[DIMENSIONS][];
+      for(int i = 0; i < DIMENSIONS; i++) {
+        q[i] = new double[MAX_DIGITS[i]];
+        d[i] = new int[MAX_DIGITS[i]];
       }
 
-      for(int i = 0; i < K.length; i++) {
+      for(int i = 0; i < DIMENSIONS; i++) {
         long k = index;
         x[i] = 0;
-        
-        for(int j = 0; j < K[i]; j++) {
-          q[i][j] = (j == 0? 1.0: q[i][j-1])/P[i];
-          d[i][j] = (int)(k % P[i]);
-          k = (k - d[i][j])/P[i];
+
+        for(int j = 0; j < MAX_DIGITS[i]; j++) {
+          q[i][j] = (j == 0? 1.0: q[i][j-1])/ BASES[i];
+          d[i][j] = (int)(k % BASES[i]);
+          k = (k - d[i][j])/ BASES[i];
           x[i] += d[i][j] * q[i][j];
         }
       }
@@ -125,16 +124,16 @@ public class QuasiMonteCarlo extends Configured implements Tool {
     /** Compute next point.
      * Assume the current point is H(index).
      * Compute H(index+1).
-     * 
+     *
      * @return a 2-dimensional point with coordinates in [0,1)^2
      */
-    double[] nextPoint() {
+    public double[] nextPoint() {
       index++;
-      for(int i = 0; i < K.length; i++) {
-        for(int j = 0; j < K[i]; j++) {
+      for(int i = 0; i < DIMENSIONS; i++) {
+        for(int j = 0; j < MAX_DIGITS[i]; j++) {
           d[i][j]++;
           x[i] += q[i][j];
-          if (d[i][j] < P[i]) {
+          if (d[i][j] < BASES[i]) {
             break;
           }
           d[i][j] = 0;
@@ -150,7 +149,7 @@ public class QuasiMonteCarlo extends Configured implements Tool {
    * Generate points in a unit square
    * and then count points inside/outside of the inscribed circle of the square.
    */
-  public static class QmcMapper extends 
+  public static class QmcMapper extends
       Mapper<LongWritable, LongWritable, BooleanWritable, LongWritable> {
 
     /** Map method.
@@ -160,16 +159,15 @@ public class QuasiMonteCarlo extends Configured implements Tool {
      */
     public void map(LongWritable offset,
                     LongWritable size,
-                    Context context) 
+                    Context context)
         throws IOException, InterruptedException {
 
-      final HaltonSequence haltonsequence = new HaltonSequence(offset.get());
       long numInside = 0L;
       long numOutside = 0L;
 
       for(long i = 0; i < size.get(); ) {
         //generate points in a unit square
-        final double[] point = haltonsequence.nextPoint();
+        final double[] point = new CpuHaltonSequence(offset.get() + i).nextPoint();
 
         //count points inside/outside of the inscribed circle of the square
         final double x = point[0] - 0.5;
@@ -197,15 +195,15 @@ public class QuasiMonteCarlo extends Configured implements Tool {
    * Reducer class for Pi estimation.
    * Accumulate points inside/outside results from the mappers.
    */
-  public static class QmcReducer extends 
+  public static class QmcReducer extends
       Reducer<BooleanWritable, LongWritable, WritableComparable<?>, Writable> {
-    
+
     private long numInside = 0;
     private long numOutside = 0;
-      
+
     /**
      * Accumulate number of points inside/outside results from the mappers.
-     * @param isInside Is the points inside? 
+     * @param isInside Is the points inside?
      * @param values An iterator to a list of point counts
      * @param context dummy, not used here.
      */
@@ -234,7 +232,7 @@ public class QuasiMonteCarlo extends Configured implements Tool {
       Path outFile = new Path(outDir, "reduce-out");
       FileSystem fileSys = FileSystem.get(conf);
       SequenceFile.Writer writer = SequenceFile.createWriter(fileSys, conf,
-          outFile, LongWritable.class, LongWritable.class, 
+          outFile, LongWritable.class, LongWritable.class,
           CompressionType.NONE);
       writer.append(new LongWritable(numInside), new LongWritable(numOutside));
       writer.close();
@@ -300,7 +298,7 @@ public class QuasiMonteCarlo extends Configured implements Tool {
         }
         System.out.println("Wrote input for Map #"+i);
       }
-  
+
       //start a map/reduce job
       System.out.println("Starting Job");
       final long startTime = Time.monotonicNow();
@@ -337,8 +335,8 @@ public class QuasiMonteCarlo extends Configured implements Tool {
   /**
    * Parse arguments and then runs a map/reduce job.
    * Print output in standard out.
-   * 
-   * @return a non-zero if there is an error.  Otherwise, return 0.  
+   *
+   * @return a non-zero if there is an error.  Otherwise, return 0.
    */
   public int run(String[] args) throws Exception {
     if (args.length != 2) {
@@ -346,23 +344,23 @@ public class QuasiMonteCarlo extends Configured implements Tool {
       ToolRunner.printGenericCommandUsage(System.err);
       return 2;
     }
-    
+
     final int nMaps = Integer.parseInt(args[0]);
     final long nSamples = Long.parseLong(args[1]);
     long now = System.currentTimeMillis();
     int rand = new Random().nextInt(Integer.MAX_VALUE);
     final Path tmpDir = new Path(TMP_DIR_PREFIX + "_" + now + "_" + rand);
-        
+
     System.out.println("Number of Maps  = " + nMaps);
     System.out.println("Samples per Map = " + nSamples);
-        
+
     System.out.println("Estimated value of Pi is "
         + estimatePi(nMaps, nSamples, tmpDir, getConf()));
     return 0;
   }
 
   /**
-   * main method for running it as a stand alone command. 
+   * main method for running it as a stand alone command.
    */
   public static void main(String[] argv) throws Exception {
     System.exit(ToolRunner.run(null, new QuasiMonteCarlo(), argv));
