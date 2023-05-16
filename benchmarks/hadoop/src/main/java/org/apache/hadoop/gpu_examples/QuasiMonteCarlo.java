@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.hadoop.examples;
+package org.apache.hadoop.gpu_examples;
 
 import java.io.IOException;
 import java.math.BigDecimal;
