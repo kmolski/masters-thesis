@@ -27,6 +27,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.gpu_examples.qmc.CpuQmcMapper;
 import org.apache.hadoop.io.BooleanWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.SequenceFile;
@@ -76,127 +77,14 @@ import org.apache.hadoop.util.ToolRunner;
  * Finally, the estimated value of Pi is 4(numInside/numTotal).
  */
 public class QuasiMonteCarlo extends Configured implements Tool {
-  static final String DESCRIPTION
-      = "A map/reduce program that estimates Pi using a quasi-Monte Carlo method.";
-  /** tmp directory for input/output */
-  static private final String TMP_DIR_PREFIX = QuasiMonteCarlo.class.getSimpleName();
 
-  /** 2-dimensional Halton sequence {H(i)},
-   * where H(i) is a 2-dimensional point and i >= 1 is the index.
-   * Halton sequence is used to generate sample points for Pi estimation.
-   */
-  public static class CpuHaltonSequence {
-    static final int[] BASES = {2, 3};
-    static final int[] MAX_DIGITS = {63, 40};
-    static final int DIMENSIONS = BASES.length;
-
-    private long index;
-    private double[] x;
-    private double[][] q;
-    private int[][] d;
-
-    /** Initialize to H(startIndex),
-     * so the sequence begins with H(startIndex+1).
-     */
-    public CpuHaltonSequence(long startIndex) {
-      index = startIndex;
-      x = new double[DIMENSIONS];
-      q = new double[DIMENSIONS][];
-      d = new int[DIMENSIONS][];
-      for(int i = 0; i < DIMENSIONS; i++) {
-        q[i] = new double[MAX_DIGITS[i]];
-        d[i] = new int[MAX_DIGITS[i]];
-      }
-
-      for(int i = 0; i < DIMENSIONS; i++) {
-        long k = index;
-        x[i] = 0;
-
-        for(int j = 0; j < MAX_DIGITS[i]; j++) {
-          q[i][j] = (j == 0? 1.0: q[i][j-1])/ BASES[i];
-          d[i][j] = (int)(k % BASES[i]);
-          k = (k - d[i][j])/ BASES[i];
-          x[i] += d[i][j] * q[i][j];
-        }
-      }
-    }
-
-    /** Compute next point.
-     * Assume the current point is H(index).
-     * Compute H(index+1).
-     *
-     * @return a 2-dimensional point with coordinates in [0,1)^2
-     */
-    public double[] nextPoint() {
-      index++;
-      for(int i = 0; i < DIMENSIONS; i++) {
-        for(int j = 0; j < MAX_DIGITS[i]; j++) {
-          d[i][j]++;
-          x[i] += q[i][j];
-          if (d[i][j] < BASES[i]) {
-            break;
-          }
-          d[i][j] = 0;
-          x[i] -= (j == 0? 1.0: q[i][j-1]);
-        }
-      }
-      return x;
-    }
-  }
-
-  /**
-   * Mapper class for Pi estimation.
-   * Generate points in a unit square
-   * and then count points inside/outside of the inscribed circle of the square.
-   */
-  public static class QmcMapper extends
-      Mapper<LongWritable, LongWritable, BooleanWritable, LongWritable> {
-
-    /** Map method.
-     * @param offset samples starting from the (offset+1)th sample.
-     * @param size the number of samples for this map
-     * @param context output {true-&gt;numInside, false-&gt;numOutside}
-     */
-    public void map(LongWritable offset,
-                    LongWritable size,
-                    Context context)
-        throws IOException, InterruptedException {
-
-      long numInside = 0L;
-      long numOutside = 0L;
-
-      for(long i = 0; i < size.get(); ) {
-        //generate points in a unit square
-        final double[] point = new CpuHaltonSequence(offset.get() + i).nextPoint();
-
-        //count points inside/outside of the inscribed circle of the square
-        final double x = point[0] - 0.5;
-        final double y = point[1] - 0.5;
-        if (x*x + y*y > 0.25) {
-          numOutside++;
-        } else {
-          numInside++;
-        }
-
-        //report status
-        i++;
-        if (i % 1000 == 0) {
-          context.setStatus("Generated " + i + " samples.");
-        }
-      }
-
-      //output map results
-      context.write(new BooleanWritable(true), new LongWritable(numInside));
-      context.write(new BooleanWritable(false), new LongWritable(numOutside));
-    }
-  }
+  private static final String TMP_DIR_PREFIX = QuasiMonteCarlo.class.getSimpleName();
 
   /**
    * Reducer class for Pi estimation.
    * Accumulate points inside/outside results from the mappers.
    */
-  public static class QmcReducer extends
-      Reducer<BooleanWritable, LongWritable, WritableComparable<?>, Writable> {
+  public static class QmcReducer extends Reducer<BooleanWritable, LongWritable, WritableComparable<?>, Writable> {
 
     private long numInside = 0;
     private long numOutside = 0;
@@ -207,9 +95,7 @@ public class QuasiMonteCarlo extends Configured implements Tool {
      * @param values An iterator to a list of point counts
      * @param context dummy, not used here.
      */
-    public void reduce(BooleanWritable isInside,
-        Iterable<LongWritable> values, Context context)
-        throws IOException, InterruptedException {
+    public void reduce(BooleanWritable isInside, Iterable<LongWritable> values, Context context) {
       if (isInside.get()) {
         for (LongWritable val : values) {
           numInside += val.get();
@@ -231,9 +117,9 @@ public class QuasiMonteCarlo extends Configured implements Tool {
       Path outDir = new Path(conf.get(FileOutputFormat.OUTDIR));
       Path outFile = new Path(outDir, "reduce-out");
       FileSystem fileSys = FileSystem.get(conf);
-      SequenceFile.Writer writer = SequenceFile.createWriter(fileSys, conf,
-          outFile, LongWritable.class, LongWritable.class,
-          CompressionType.NONE);
+      SequenceFile.Writer writer = SequenceFile.createWriter(
+          fileSys, conf, outFile, LongWritable.class, LongWritable.class, CompressionType.NONE
+      );
       writer.append(new LongWritable(numInside), new LongWritable(numOutside));
       writer.close();
     }
@@ -244,11 +130,10 @@ public class QuasiMonteCarlo extends Configured implements Tool {
    *
    * @return the estimated value of Pi
    */
-  public static BigDecimal estimatePi(int numMaps, long numPoints,
-      Path tmpDir, Configuration conf
-      ) throws IOException, ClassNotFoundException, InterruptedException {
+  public static BigDecimal estimatePi(int numMaps, long numPoints, Path tmpDir, Configuration conf)
+          throws IOException, ClassNotFoundException, InterruptedException {
+
     Job job = Job.getInstance(conf);
-    //setup job conf
     job.setJobName(QuasiMonteCarlo.class.getSimpleName());
     job.setJarByClass(QuasiMonteCarlo.class);
 
@@ -258,13 +143,12 @@ public class QuasiMonteCarlo extends Configured implements Tool {
     job.setOutputValueClass(LongWritable.class);
     job.setOutputFormatClass(SequenceFileOutputFormat.class);
 
-    job.setMapperClass(QmcMapper.class);
+    job.setMapperClass(CpuQmcMapper.class);
 
     job.setReducerClass(QmcReducer.class);
     job.setNumReduceTasks(1);
 
-    // turn off speculative execution, because DFS doesn't handle
-    // multiple writers to the same file.
+    // turn off speculative execution, because DFS doesn't handle multiple writers to the same file.
     job.setSpeculativeExecution(false);
 
     //setup input/output directories
