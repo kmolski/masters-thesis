@@ -78,9 +78,9 @@ import org.apache.hadoop.util.ToolRunner;
  * and the area of unit square is 1.
  * Finally, the estimated value of Pi is 4(numInside/numTotal).
  */
-public class QuasiMonteCarlo extends Configured implements Tool {
+public class PiEstimation extends Configured implements Tool {
 
-  private static final String TMP_DIR_PREFIX = QuasiMonteCarlo.class.getSimpleName();
+  private static final String TMP_DIR_PREFIX = PiEstimation.class.getSimpleName();
 
   private static final Map<String, Class<? extends Mapper<?, ?, ?, ?>>> MAPPERS = Map.of(
           "cpu", CpuQmcMapper.class,
@@ -142,8 +142,8 @@ public class QuasiMonteCarlo extends Configured implements Tool {
   ) throws IOException, ClassNotFoundException, InterruptedException {
 
     Job job = Job.getInstance(conf);
-    job.setJobName(QuasiMonteCarlo.class.getSimpleName());
-    job.setJarByClass(QuasiMonteCarlo.class);
+    job.setJobName(PiEstimation.class.getSimpleName());
+    job.setJarByClass(PiEstimation.class);
 
     job.setInputFormatClass(SequenceFileInputFormat.class);
 
@@ -261,6 +261,6 @@ public class QuasiMonteCarlo extends Configured implements Tool {
    * main method for running it as a stand alone command.
    */
   public static void main(String[] argv) throws Exception {
-    System.exit(ToolRunner.run(null, new QuasiMonteCarlo(), argv));
+    System.exit(ToolRunner.run(null, new PiEstimation(), argv));
   }
 }
