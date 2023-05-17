@@ -43,10 +43,12 @@ public class CpuQmcMapper extends Mapper<LongWritable, LongWritable, BooleanWrit
             }
 
             for (int j = 0; j < MAX_DIGITS[i]; j++) {
+                d[i][j]++;
                 point[i] += q[i][j];
-                if (d[i][j] + 1 < BASES[i]) {
+                if (d[i][j] < BASES[i]) {
                     break;
                 }
+                d[i][j] = 0;
                 point[i] -= (j == 0 ? 1.0 : q[i][j - 1]);
             }
         }
