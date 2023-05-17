@@ -21,12 +21,14 @@ package org.apache.hadoop.gpu_examples;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Map;
 import java.util.Random;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.gpu_examples.qmc.AparapiQmcMapper;
 import org.apache.hadoop.gpu_examples.qmc.CpuQmcMapper;
 import org.apache.hadoop.io.BooleanWritable;
 import org.apache.hadoop.io.LongWritable;
@@ -80,6 +82,11 @@ public class QuasiMonteCarlo extends Configured implements Tool {
 
   private static final String TMP_DIR_PREFIX = QuasiMonteCarlo.class.getSimpleName();
 
+  private static final Map<String, Class<? extends Mapper<?, ?, ?, ?>>> MAPPERS = Map.of(
+          "cpu", CpuQmcMapper.class,
+          "aparapi", AparapiQmcMapper.class
+  );
+
   /**
    * Reducer class for Pi estimation.
    * Accumulate points inside/outside results from the mappers.
@@ -130,8 +137,9 @@ public class QuasiMonteCarlo extends Configured implements Tool {
    *
    * @return the estimated value of Pi
    */
-  public static BigDecimal estimatePi(int numMaps, long numPoints, Path tmpDir, Configuration conf)
-          throws IOException, ClassNotFoundException, InterruptedException {
+  public static BigDecimal estimatePi(
+          int numMaps, long numPoints, Path tmpDir, Configuration conf, Class<? extends Mapper<?, ?, ?, ?>> mapperClazz
+  ) throws IOException, ClassNotFoundException, InterruptedException {
 
     Job job = Job.getInstance(conf);
     job.setJobName(QuasiMonteCarlo.class.getSimpleName());
@@ -143,7 +151,7 @@ public class QuasiMonteCarlo extends Configured implements Tool {
     job.setOutputValueClass(LongWritable.class);
     job.setOutputFormatClass(SequenceFileOutputFormat.class);
 
-    job.setMapperClass(CpuQmcMapper.class);
+    job.setMapperClass(mapperClazz);
 
     job.setReducerClass(QmcReducer.class);
     job.setNumReduceTasks(1);
@@ -223,23 +231,29 @@ public class QuasiMonteCarlo extends Configured implements Tool {
    * @return a non-zero if there is an error.  Otherwise, return 0.
    */
   public int run(String[] args) throws Exception {
-    if (args.length != 2) {
-      System.err.println("Usage: "+getClass().getName()+" <nMaps> <nSamples>");
+    if (args.length != 3) {
+      System.err.println("Usage: "+getClass().getName()+" <nMaps> <nSamples> <mapper>");
       ToolRunner.printGenericCommandUsage(System.err);
-      return 2;
+      return 3;
     }
 
     final int nMaps = Integer.parseInt(args[0]);
     final long nSamples = Long.parseLong(args[1]);
+    final String mapperName = args[2];
     long now = System.currentTimeMillis();
     int rand = new Random().nextInt(Integer.MAX_VALUE);
     final Path tmpDir = new Path(TMP_DIR_PREFIX + "_" + now + "_" + rand);
+    final Class<? extends Mapper<?, ?, ?, ?>> mapper =
+          MAPPERS.computeIfAbsent(mapperName, name -> {
+              throw new IllegalArgumentException("Unknown mapper: " + name);
+          });
 
     System.out.println("Number of Maps  = " + nMaps);
     System.out.println("Samples per Map = " + nSamples);
+    System.out.println("Mapper implementation = " + mapper);
 
     System.out.println("Estimated value of Pi is "
-        + estimatePi(nMaps, nSamples, tmpDir, getConf()));
+        + estimatePi(nMaps, nSamples, tmpDir, getConf(), mapper));
     return 0;
   }
 

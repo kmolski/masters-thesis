@@ -22,7 +22,7 @@ public class CpuQmcMapper extends Mapper<LongWritable, LongWritable, BooleanWrit
      * where H(i) is a 2-dimensional point and i >= 1 is the index.
      * Halton sequence is used to generate sample points for Pi estimation.
      */
-    private double[] getRandomPoint(long index) {
+    public double[] getRandomPoint(long index) {
         double[] point = new double[DIMENSIONS];
 
         double[][] q = new double[DIMENSIONS][];
