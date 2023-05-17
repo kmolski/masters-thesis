@@ -25,11 +25,12 @@ public class AparapiQmcMapper extends CpuQmcMapper {
                 final double x = point[0] - 0.5;
                 final double y = point[1] - 0.5;
 
-                points[i] = (x * x + y * y > 0.25);
+                points[i] = (x * x + y * y <= 0.25);
             }
         };
 
         Range range = Range.create((int) size.get());
+        kernel.getTargetDevice();
         kernel.execute(range);
 
         for (boolean isInside : points) {
