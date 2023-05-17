@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 
 /**
@@ -235,9 +236,9 @@ public class PiEstimation {
     int rand = new Random().nextInt(Integer.MAX_VALUE);
     final Path tmpDir = new Path(TMP_DIR_PREFIX + "_" + now + "_" + rand);
     final Class<? extends Mapper<?, ?, ?, ?>> mapper =
-            MAPPERS.computeIfAbsent(mapperName, name -> {
-              throw new IllegalArgumentException("Unknown mapper: " + name);
-            });
+            Optional.ofNullable(MAPPERS.get(mapperName)).orElseThrow(
+                    () -> new IllegalArgumentException("Unknown mapper: " + mapperName)
+            );
 
     System.out.println("Number of Maps  = " + nMaps);
     System.out.println("Samples per Map = " + nSamples);
