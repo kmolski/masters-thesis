@@ -18,32 +18,27 @@
 
 package org.apache.hadoop.gpu_examples;
 
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.Map;
-import java.util.Random;
-
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.gpu_examples.qmc.AparapiQmcMapper;
 import org.apache.hadoop.gpu_examples.qmc.CpuQmcMapper;
-import org.apache.hadoop.io.BooleanWritable;
-import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.SequenceFile;
-import org.apache.hadoop.io.Writable;
-import org.apache.hadoop.io.WritableComparable;
+import org.apache.hadoop.io.*;
 import org.apache.hadoop.io.SequenceFile.CompressionType;
-import org.apache.hadoop.mapreduce.*;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.util.Time;
-import org.apache.hadoop.util.Tool;
-import org.apache.hadoop.util.ToolRunner;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Map;
+import java.util.Random;
 
 /**
  * A map/reduce program that estimates the value of Pi
@@ -78,7 +73,7 @@ import org.apache.hadoop.util.ToolRunner;
  * and the area of unit square is 1.
  * Finally, the estimated value of Pi is 4(numInside/numTotal).
  */
-public class PiEstimation extends Configured implements Tool {
+public class PiEstimation {
 
   private static final String TMP_DIR_PREFIX = PiEstimation.class.getSimpleName();
 
@@ -225,16 +220,12 @@ public class PiEstimation extends Configured implements Tool {
   }
 
   /**
-   * Parse arguments and then runs a map/reduce job.
-   * Print output in standard out.
-   *
-   * @return a non-zero if there is an error.  Otherwise, return 0.
+   * main method for running it as a stand alone command.
    */
-  public int run(String[] args) throws Exception {
+  public static void main(String[] args) throws Exception {
     if (args.length != 3) {
-      System.err.println("Usage: "+getClass().getName()+" <nMaps> <nSamples> <mapper>");
-      ToolRunner.printGenericCommandUsage(System.err);
-      return 3;
+      System.err.println("Usage: "+ PiEstimation.class.getName()+" <nMaps> <nSamples> <mapper>");
+      System.exit(2);
     }
 
     final int nMaps = Integer.parseInt(args[0]);
@@ -244,23 +235,15 @@ public class PiEstimation extends Configured implements Tool {
     int rand = new Random().nextInt(Integer.MAX_VALUE);
     final Path tmpDir = new Path(TMP_DIR_PREFIX + "_" + now + "_" + rand);
     final Class<? extends Mapper<?, ?, ?, ?>> mapper =
-          MAPPERS.computeIfAbsent(mapperName, name -> {
+            MAPPERS.computeIfAbsent(mapperName, name -> {
               throw new IllegalArgumentException("Unknown mapper: " + name);
-          });
+            });
 
     System.out.println("Number of Maps  = " + nMaps);
     System.out.println("Samples per Map = " + nSamples);
     System.out.println("Mapper implementation = " + mapper);
 
     System.out.println("Estimated value of Pi is "
-        + estimatePi(nMaps, nSamples, tmpDir, getConf(), mapper));
-    return 0;
-  }
-
-  /**
-   * main method for running it as a stand alone command.
-   */
-  public static void main(String[] argv) throws Exception {
-    System.exit(ToolRunner.run(null, new PiEstimation(), argv));
+            + estimatePi(nMaps, nSamples, tmpDir, new Configuration(), mapper));
   }
 }
