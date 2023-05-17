@@ -20,13 +20,12 @@ public class AparapiQmcMapper extends CpuQmcMapper {
             @Override
             public void run() {
                 int i = getGlobalId();
-                int index = (int) (i + offset.get());
 
                 final double[] point = getRandomPoint(offset.get() + i);
                 final double x = point[0] - 0.5;
                 final double y = point[1] - 0.5;
 
-                points[index] = (x * x + y * y > 0.25);
+                points[i] = (x * x + y * y > 0.25);
             }
         };
 
