@@ -30,7 +30,6 @@ public class AparapiQmcMapper extends CpuQmcMapper {
         };
 
         Range range = Range.create((int) size.get());
-        kernel.getTargetDevice();
         kernel.execute(range);
 
         for (boolean isInside : points) {
@@ -40,6 +39,7 @@ public class AparapiQmcMapper extends CpuQmcMapper {
                 numOutside++;
             }
         }
+        kernel.dispose();
 
         context.write(new BooleanWritable(true), new LongWritable(numInside));
         context.write(new BooleanWritable(false), new LongWritable(numOutside));
