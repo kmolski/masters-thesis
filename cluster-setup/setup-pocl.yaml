@@ -1,0 +1,59 @@
+---
+- hosts: jetson
+  tags: pocl_setup
+
+  tasks:
+    - name: ensure PoCL dependencies
+      ansible.builtin.package:
+        name:
+          - clang
+          - libclang-10-dev
+          - libclang-cpp10
+          - libclang-cpp10-dev
+          - llvm-10
+          - llvm-10-dev
+          - libhwloc-dev
+        state: present
+      become: true
+
+    - name: check if PoCL directory exists
+      ansible.builtin.stat:
+        path: "/usr/local/share/pocl"
+      register: pocl_dir
+
+    - name: download PoCL tarball
+      ansible.builtin.get_url:
+        url: "{{ pocl_tarball }}"
+        dest: /tmp/pocl.tar.gz
+      when: not pocl_dir.stat.exists
+
+    - name: unpack PoCL tarball
+      ansible.builtin.unarchive:
+        src: /tmp/pocl.tar.gz
+        dest: /home/krzysztof
+        owner: "{{ ansible_user }}"
+        remote_src: true
+      when: not pocl_dir.stat.exists
+      become: true
+
+    - name: install PoCL from tarball
+      community.general.make:
+        chdir: /home/krzysztof/pocl/build
+        target: install
+      when: not pocl_dir.stat.exists
+      become: true
+
+    - name: remove PoCL folder
+      ansible.builtin.file:
+        path: /home/krzysztof/pocl
+        state: absent
+      when: not pocl_dir.stat.exists
+
+    - name: link PoCL ICD
+      ansible.builtin.file:
+        src: "/usr/local/etc/OpenCL/vendors/pocl.icd"
+        dest: "/etc/OpenCL/vendors/pocl.icd"
+        owner: root
+        group: root
+        state: link
+      become: true

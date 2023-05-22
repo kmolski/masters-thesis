@@ -11,6 +11,7 @@
   - name: ensure common CLI tools
     ansible.builtin.package:
       name:
+        - clinfo
         - git
         - rsync
         - sudo

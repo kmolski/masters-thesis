@@ -25,7 +25,7 @@ public class AparapiQmcMapper extends CpuQmcMapper {
                 final double x = point[0] - 0.5;
                 final double y = point[1] - 0.5;
 
-                points[i] = (x * x + y * y > 0.25);
+                points[i] = (x * x + y * y <= 0.25);
             }
         };
 
@@ -39,6 +39,7 @@ public class AparapiQmcMapper extends CpuQmcMapper {
                 numOutside++;
             }
         }
+        kernel.dispose();
 
         context.write(new BooleanWritable(true), new LongWritable(numInside));
         context.write(new BooleanWritable(false), new LongWritable(numOutside));

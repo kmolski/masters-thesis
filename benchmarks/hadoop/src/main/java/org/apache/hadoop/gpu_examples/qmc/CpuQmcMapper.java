@@ -27,18 +27,19 @@ public class CpuQmcMapper extends Mapper<LongWritable, LongWritable, BooleanWrit
 
         double[][] q = new double[DIMENSIONS][];
         int[][] d = new int[DIMENSIONS][];
-        for (int i = 0; i < DIMENSIONS; ++i) {
+        for (int i = 0; i < DIMENSIONS; i++) {
             q[i] = new double[MAX_DIGITS[i]];
             d[i] = new int[MAX_DIGITS[i]];
         }
 
-        for (int i = 0; i < DIMENSIONS; ++i) {
+        for (int i = 0; i < DIMENSIONS; i++) {
+            long k = index;
             point[i] = 0;
 
             for (int j = 0; j < MAX_DIGITS[i]; j++) {
                 q[i][j] = (j == 0 ? 1.0 : q[i][j - 1]) / BASES[i];
-                d[i][j] = (int) (index % BASES[i]);
-                index = (index - d[i][j]) / BASES[i];
+                d[i][j] = (int) (k % BASES[i]);
+                k = (k - d[i][j]) / BASES[i];
                 point[i] += d[i][j] * q[i][j];
             }
 
