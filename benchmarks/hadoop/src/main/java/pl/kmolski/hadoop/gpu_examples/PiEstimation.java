@@ -16,13 +16,13 @@
  * limitations under the License.
  */
 
-package org.apache.hadoop.gpu_examples;
+package pl.kmolski.hadoop.gpu_examples;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.gpu_examples.qmc.AparapiQmcMapper;
-import org.apache.hadoop.gpu_examples.qmc.CpuQmcMapper;
+import pl.kmolski.hadoop.gpu_examples.qmc.AparapiQmcMapper;
+import pl.kmolski.hadoop.gpu_examples.qmc.CpuQmcMapper;
 import org.apache.hadoop.io.*;
 import org.apache.hadoop.io.SequenceFile.CompressionType;
 import org.apache.hadoop.mapreduce.Job;

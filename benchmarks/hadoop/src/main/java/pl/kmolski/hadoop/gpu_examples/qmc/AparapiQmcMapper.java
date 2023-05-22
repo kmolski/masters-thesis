@@ -1,4 +1,4 @@
-package org.apache.hadoop.gpu_examples.qmc;
+package pl.kmolski.hadoop.gpu_examples.qmc;
 
 import com.aparapi.Kernel;
 import com.aparapi.Range;
@@ -15,7 +15,7 @@ public class AparapiQmcMapper extends CpuQmcMapper {
         long numInside = 0L;
         long numOutside = 0L;
 
-        boolean[] points = new boolean[(int) size.get()];
+        final boolean[] points = new boolean[(int) size.get()];
         Kernel kernel = new Kernel() {
             @Override
             public void run() {

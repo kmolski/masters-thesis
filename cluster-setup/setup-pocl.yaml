@@ -1,5 +1,5 @@
 ---
-- hosts: jetson
+- hosts: workers
   tags: pocl_setup
 
   tasks:
