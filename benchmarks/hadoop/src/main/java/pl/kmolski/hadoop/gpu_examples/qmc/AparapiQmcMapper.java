@@ -45,11 +45,12 @@ public class AparapiQmcMapper extends Mapper<LongWritable, LongWritable, Boolean
         long numInside = 0L;
         long numOutside = 0L;
 
-        final boolean[] guesses = new boolean[(int) size.get()];
+        int isize = (int) size.get();
+        final boolean[] guesses = new boolean[isize];
 
-        double[][] q = new double[10_000][];
-        int[][] d = new int[10_000][];
-        for (int i = 0; i < 10_000; i++) {
+        double[][] q = new double[isize][];
+        int[][] d = new int[isize][];
+        for (int i = 0; i < isize; i++) {
             q[i] = new double[63];
             d[i] = new int[63];
         }
