@@ -13,6 +13,8 @@
           - llvm-10
           - llvm-10-dev
           - libhwloc-dev
+          - ocl-icd-libopencl1
+          - ocl-icd-opencl-dev
         state: present
       become: true
 
@@ -34,7 +36,6 @@
         owner: "{{ ansible_user }}"
         remote_src: true
       when: not pocl_dir.stat.exists
-      become: true
 
     - name: install PoCL from tarball
       community.general.make:
@@ -48,6 +49,7 @@
         path: /home/krzysztof/pocl
         state: absent
       when: not pocl_dir.stat.exists
+      become: true
 
     - name: link PoCL ICD
       ansible.builtin.file:

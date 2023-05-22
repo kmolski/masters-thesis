@@ -6,11 +6,6 @@ import org.apache.hadoop.mapreduce.Mapper;
 
 import java.io.IOException;
 
-/**
- * Mapper class for Pi estimation.
- * Generate points in a unit square
- * and then count points inside/outside the inscribed circle of the square.
- */
 public class CpuQmcMapper extends Mapper<LongWritable, LongWritable, BooleanWritable, LongWritable> {
 
     private static final int[] BASES = {2, 3};
@@ -22,7 +17,7 @@ public class CpuQmcMapper extends Mapper<LongWritable, LongWritable, BooleanWrit
      * where H(i) is a 2-dimensional point and i >= 1 is the index.
      * Halton sequence is used to generate sample points for Pi estimation.
      */
-    public double[] getRandomPoint(long index) {
+    private double[] getRandomPoint(long index) {
         double[] point = new double[DIMENSIONS];
 
         double[][] q = new double[DIMENSIONS][];
@@ -57,13 +52,6 @@ public class CpuQmcMapper extends Mapper<LongWritable, LongWritable, BooleanWrit
         return point;
     }
 
-    /**
-     * Map method.
-     *
-     * @param offset  samples starting from the (offset+1)th sample.
-     * @param size    the number of samples for this map
-     * @param context output {true-&gt;numInside, false-&gt;numOutside}
-     */
     public void map(LongWritable offset, LongWritable size, Context context) throws IOException, InterruptedException {
 
         long numInside = 0L;

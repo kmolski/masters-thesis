@@ -4,10 +4,40 @@ import com.aparapi.Kernel;
 import com.aparapi.Range;
 import org.apache.hadoop.io.BooleanWritable;
 import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.mapreduce.Mapper;
 
 import java.io.IOException;
 
-public class AparapiQmcMapper extends CpuQmcMapper {
+public class AparapiQmcMapper extends Mapper<LongWritable, LongWritable, BooleanWritable, LongWritable> {
+
+    private double getRandomCoordinate(double[] q, int[] d, long index, int base, int maxDigits) {
+
+        double value = 0.0;
+        long k = index;
+
+        for (int j = 0; j < maxDigits; j++) {
+            q[j] = (j == 0 ? 1.0 : q[j - 1]) / base;
+            d[j] = (int) (k % base);
+            k = (k - d[j]) / base;
+            value += d[j] * q[j];
+        }
+
+        boolean cont = true;
+        for (int j = 0; j < maxDigits; j++) {
+            if (cont) {
+                d[j]++;
+                value += q[j];
+                if (d[j] < base) {
+                    cont = false;
+                } else {
+                    d[j] = 0;
+                    value -= (j == 0 ? 1.0 : q[j - 1]);
+                }
+            }
+        }
+
+        return value;
+    }
 
     @Override
     public void map(LongWritable offset, LongWritable size, Context context) throws IOException, InterruptedException {
@@ -15,28 +45,35 @@ public class AparapiQmcMapper extends CpuQmcMapper {
         long numInside = 0L;
         long numOutside = 0L;
 
-        final boolean[] points = new boolean[(int) size.get()];
+        final boolean[] guesses = new boolean[(int) size.get()];
+
+        double[][] q = new double[10_000][];
+        int[][] d = new int[10_000][];
+        for (int i = 0; i < 10_000; i++) {
+            q[i] = new double[63];
+            d[i] = new int[63];
+        }
+
         Kernel kernel = new Kernel() {
             @Override
             public void run() {
                 int i = getGlobalId();
 
-                final double[] point = getRandomPoint(offset.get() + i);
-                final double x = point[0] - 0.5;
-                final double y = point[1] - 0.5;
+                final double x = getRandomCoordinate(q[i], d[i], i, 2, 63) - 0.5;
+                final double y = getRandomCoordinate(q[i], d[i], i, 3, 40) - 0.5;
 
-                points[i] = (x * x + y * y <= 0.25);
+                guesses[i] = (x * x + y * y > 0.25);
             }
         };
 
         Range range = Range.create((int) size.get());
         kernel.execute(range);
 
-        for (boolean isInside : points) {
-            if (isInside) {
-                numInside++;
-            } else {
+        for (boolean isOutside : guesses) {
+            if (isOutside) {
                 numOutside++;
+            } else {
+                numInside++;
             }
         }
         kernel.dispose();
