@@ -60,8 +60,8 @@ public class AparapiQmcMapper extends Mapper<LongWritable, LongWritable, Boolean
             public void run() {
                 int i = getGlobalId();
 
-                final double x = getRandomCoordinate(q[i], d[i], i, 2, 63) - 0.5;
-                final double y = getRandomCoordinate(q[i], d[i], i, 3, 40) - 0.5;
+                final double x = getRandomCoordinate(q[i], d[i], i + offset.get(), 2, 63) - 0.5;
+                final double y = getRandomCoordinate(q[i], d[i], i + offset.get(), 3, 40) - 0.5;
 
                 guesses[i] = (x * x + y * y > 0.25);
             }
