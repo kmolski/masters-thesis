@@ -8,14 +8,11 @@ import com.aparapi.internal.kernel.KernelManager;
 import org.apache.hadoop.io.BooleanWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.util.LinkedHashSet;
 
 public class AparapiQmcMapper extends Mapper<LongWritable, LongWritable, BooleanWritable, LongWritable> {
-
-    private static final Logger LOGGER = Logger.getLogger(AparapiQmcMapper.class);
 
     private double getRandomCoordinate(double[] q, int[] d, long index, int base, int maxDigits) {
 
@@ -80,7 +77,7 @@ public class AparapiQmcMapper extends Mapper<LongWritable, LongWritable, Boolean
         kernelManager.setPreferredDevices(kernel, gpus);
         kernel.execute(Range.create(isize));
 
-        LOGGER.info(kernel.getTargetDevice());
+        System.err.println(kernel.getTargetDevice());
 
         for (boolean isOutside : guesses) {
             if (isOutside) {
