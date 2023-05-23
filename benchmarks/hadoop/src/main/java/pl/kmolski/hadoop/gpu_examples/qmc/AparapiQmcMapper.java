@@ -46,6 +46,7 @@ public class AparapiQmcMapper extends Mapper<LongWritable, LongWritable, Boolean
     @Override
     public void map(LongWritable offset, LongWritable size, Context context) throws IOException, InterruptedException {
 
+        System.setProperty("com.aparapi.logLevel", "FINE");
         long numInside = 0L;
         long numOutside = 0L;
 
@@ -76,8 +77,6 @@ public class AparapiQmcMapper extends Mapper<LongWritable, LongWritable, Boolean
         LinkedHashSet<Device> gpus = new LinkedHashSet<>(OpenCLDevice.listDevices(Device.TYPE.GPU));
         kernelManager.setPreferredDevices(kernel, gpus);
         kernel.execute(Range.create(isize));
-
-        System.err.println(kernel.getTargetDevice());
 
         for (boolean isOutside : guesses) {
             if (isOutside) {
