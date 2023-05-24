@@ -2,46 +2,13 @@ package pl.kmolski.hadoop.gpu_examples.qmc;
 
 import com.aparapi.Kernel;
 import com.aparapi.Range;
-import com.aparapi.device.Device;
-import com.aparapi.device.OpenCLDevice;
-import com.aparapi.internal.kernel.KernelManager;
 import org.apache.hadoop.io.BooleanWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Mapper;
 
 import java.io.IOException;
-import java.util.LinkedHashSet;
 
 public class AparapiQmcMapper extends Mapper<LongWritable, LongWritable, BooleanWritable, LongWritable> {
-
-    private double getRandomCoordinate(double[] q, int[] d, long index, int base, int maxDigits) {
-
-        double value = 0.0;
-        long k = index;
-
-        for (int j = 0; j < maxDigits; j++) {
-            q[j] = (j == 0 ? 1.0 : q[j - 1]) / base;
-            d[j] = (int) (k % base);
-            k = (k - d[j]) / base;
-            value += d[j] * q[j];
-        }
-
-        boolean cont = true;
-        for (int j = 0; j < maxDigits; j++) {
-            if (cont) {
-                d[j]++;
-                value += q[j];
-                if (d[j] < base) {
-                    cont = false;
-                } else {
-                    d[j] = 0;
-                    value -= (j == 0 ? 1.0 : q[j - 1]);
-                }
-            }
-        }
-
-        return value;
-    }
 
     @Override
     public void map(LongWritable offset, LongWritable size, Context context) throws IOException, InterruptedException {
@@ -51,6 +18,7 @@ public class AparapiQmcMapper extends Mapper<LongWritable, LongWritable, Boolean
         long numOutside = 0L;
 
         int isize = (int) size.get();
+        int ioffset = (int) offset.get();
         final boolean[] guesses = new boolean[isize];
 
         double[][] q = new double[isize][];
@@ -60,24 +28,67 @@ public class AparapiQmcMapper extends Mapper<LongWritable, LongWritable, Boolean
             d[i] = new int[63];
         }
 
-        KernelManager kernelManager = KernelManager.instance();
         Kernel kernel = new Kernel() {
             @Override
             public void run() {
                 final int i = getGlobalId();
-                final long offsetIndex = i + offset.get();
+                final long offsetIndex = i + ioffset;
 
-                final double x = getRandomCoordinate(q[i], d[i], offsetIndex, 2, 63) - 0.5;
-                final double y = getRandomCoordinate(q[i], d[i], offsetIndex, 3, 40) - 0.5;
+                double x = 0.0;
+                long kx = offsetIndex;
+
+                for (int j = 0; j < 63; j++) {
+                    q[i][j] = (j == 0 ? 1.0 : q[i][j - 1]) / 2;
+                    d[i][j] = (int) (kx % 2);
+                    kx = (kx - d[i][j]) / 2;
+                    x += d[i][j] * q[i][j];
+                }
+
+                boolean cont = true;
+                for (int j = 0; j < 63; j++) {
+                    if (cont) {
+                        d[i][j]++;
+                        x += q[i][j];
+                        if (d[i][j] < 2) {
+                            cont = false;
+                        } else {
+                            d[i][j] = 0;
+                            x -= (j == 0 ? 1.0 : q[i][j - 1]);
+                        }
+                    }
+                }
+                x -= 0.5;
+                // duplicated because Aparapi does not support method calls
+                double y = 0.0;
+                long ky = offsetIndex;
+
+                for (int j = 0; j < 40; j++) {
+                    q[i][j] = (j == 0 ? 1.0 : q[i][j - 1]) / 3;
+                    d[i][j] = (int) (ky % 3);
+                    ky = (ky - d[i][j]) / 3;
+                    y += d[i][j] * q[i][j];
+                }
+
+                cont = true;
+                for (int j = 0; j < 40; j++) {
+                    if (cont) {
+                        d[i][j]++;
+                        y += q[i][j];
+                        if (d[i][j] < 3) {
+                            cont = false;
+                        } else {
+                            d[i][j] = 0;
+                            y -= (j == 0 ? 1.0 : q[i][j - 1]);
+                        }
+                    }
+                }
+                y -= 0.5;
 
                 guesses[i] = (x * x + y * y > 0.25);
             }
         };
 
-        LinkedHashSet<Device> gpus = new LinkedHashSet<>(OpenCLDevice.listDevices(Device.TYPE.GPU));
-        kernelManager.setPreferredDevices(kernel, gpus);
         kernel.execute(Range.create(isize));
-
         for (boolean isOutside : guesses) {
             if (isOutside) {
                 numOutside++;
