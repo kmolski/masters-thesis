@@ -21,10 +21,10 @@ public class AparapiQmcMapper extends Mapper<LongWritable, LongWritable, Boolean
         int ioffset = (int) offset.get();
         final boolean[] guesses = new boolean[isize];
 
-        double[][] q = new double[isize][];
+        float[][] q = new float[isize][];
         int[][] d = new int[isize][];
         for (int i = 0; i < isize; i++) {
-            q[i] = new double[63];
+            q[i] = new float[63];
             d[i] = new int[63];
         }
 
@@ -34,11 +34,11 @@ public class AparapiQmcMapper extends Mapper<LongWritable, LongWritable, Boolean
                 final int i = getGlobalId();
                 final long offsetIndex = i + ioffset;
 
-                double x = 0.0;
+                float x = 0.0f;
                 long kx = offsetIndex;
 
                 for (int j = 0; j < 63; j++) {
-                    q[i][j] = (j == 0 ? 1.0 : q[i][j - 1]) / 2;
+                    q[i][j] = (j == 0 ? 1.0f : q[i][j - 1]) / 2;
                     d[i][j] = (int) (kx % 2);
                     kx = (kx - d[i][j]) / 2;
                     x += d[i][j] * q[i][j];
@@ -53,17 +53,17 @@ public class AparapiQmcMapper extends Mapper<LongWritable, LongWritable, Boolean
                             cont = false;
                         } else {
                             d[i][j] = 0;
-                            x -= (j == 0 ? 1.0 : q[i][j - 1]);
+                            x -= (j == 0 ? 1.0f : q[i][j - 1]);
                         }
                     }
                 }
-                x -= 0.5;
+                x -= 0.5f;
                 // duplicated because Aparapi does not support method calls
-                double y = 0.0;
+                float y = 0.0f;
                 long ky = offsetIndex;
 
                 for (int j = 0; j < 40; j++) {
-                    q[i][j] = (j == 0 ? 1.0 : q[i][j - 1]) / 3;
+                    q[i][j] = (j == 0 ? 1.0f : q[i][j - 1]) / 3;
                     d[i][j] = (int) (ky % 3);
                     ky = (ky - d[i][j]) / 3;
                     y += d[i][j] * q[i][j];
@@ -78,13 +78,13 @@ public class AparapiQmcMapper extends Mapper<LongWritable, LongWritable, Boolean
                             cont = false;
                         } else {
                             d[i][j] = 0;
-                            y -= (j == 0 ? 1.0 : q[i][j - 1]);
+                            y -= (j == 0 ? 1.0f : q[i][j - 1]);
                         }
                     }
                 }
-                y -= 0.5;
+                y -= 0.5f;
 
-                guesses[i] = (x * x + y * y > 0.25);
+                guesses[i] = (x * x + y * y > 0.25f);
             }
         };
 
