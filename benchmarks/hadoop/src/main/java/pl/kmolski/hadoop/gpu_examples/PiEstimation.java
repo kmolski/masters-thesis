@@ -21,8 +21,6 @@ package pl.kmolski.hadoop.gpu_examples;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import pl.kmolski.hadoop.gpu_examples.qmc.AparapiQmcMapper;
-import pl.kmolski.hadoop.gpu_examples.qmc.CpuQmcMapper;
 import org.apache.hadoop.io.*;
 import org.apache.hadoop.io.SequenceFile.CompressionType;
 import org.apache.hadoop.mapreduce.Job;
@@ -33,6 +31,9 @@ import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.util.Time;
+import pl.kmolski.hadoop.gpu_examples.qmc.AparapiQmcMapper;
+import pl.kmolski.hadoop.gpu_examples.qmc.CpuQmcMapper;
+import pl.kmolski.hadoop.gpu_examples.qmc.JcudaQmcMapper;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -80,7 +81,8 @@ public class PiEstimation {
 
   private static final Map<String, Class<? extends Mapper<?, ?, ?, ?>>> MAPPERS = Map.of(
           "cpu", CpuQmcMapper.class,
-          "aparapi", AparapiQmcMapper.class
+          "aparapi", AparapiQmcMapper.class,
+          "jcuda", JcudaQmcMapper.class
   );
 
   /**
