@@ -38,7 +38,8 @@ public class JcudaQmcMapper extends Mapper<LongWritable, LongWritable, BooleanWr
         cuMemAlloc(guessesOutput, size.get() * Sizeof.BYTE);
         Pointer kernelParams = Pointer.to(
                 guessesOutput,
-                Pointer.to(new long[]{size.get(), offset.get()})
+                Pointer.to(new long[]{size.get()}),
+                Pointer.to(new long[]{offset.get()})
         );
 
         int blockSizeX = 256;
@@ -57,8 +58,8 @@ public class JcudaQmcMapper extends Mapper<LongWritable, LongWritable, BooleanWr
 
         long numInside = 0L;
         long numOutside = 0L;
-        for (byte isInside : guesses) {
-            if (isInside == 0) {
+        for (byte isOutside : guesses) {
+            if (isOutside == 1) {
                 numOutside++;
             } else {
                 numInside++;
