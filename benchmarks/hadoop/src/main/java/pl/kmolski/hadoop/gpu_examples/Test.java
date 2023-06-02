@@ -1,21 +1,20 @@
-package pl.kmolski.hadoop.gpu_examples.qmc;
+package pl.kmolski.hadoop.gpu_examples;
 
 import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.driver.*;
-import org.apache.hadoop.io.BooleanWritable;
-import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.mapreduce.Mapper;
 import pl.kmolski.utils.JcudaUtils;
 
 import java.io.IOException;
 
 import static jcuda.driver.JCudaDriver.*;
 
-public class JcudaQmcMapper extends Mapper<LongWritable, LongWritable, BooleanWritable, LongWritable> {
+public class Test {
 
-    @Override
-    public void map(LongWritable offset, LongWritable size, Context context) throws IOException, InterruptedException {
+    public static void main(String[] args) throws IOException {
+
+        long size = 100_000;
+        long offset = 0;
 
         JCudaDriver.setExceptionsEnabled(true);
         cuInit(0);
@@ -26,7 +25,7 @@ public class JcudaQmcMapper extends Mapper<LongWritable, LongWritable, BooleanWr
         CUcontext ctx = new CUcontext();
         cuCtxCreate(ctx, 0, device);
 
-        byte[] ptx = JcudaUtils.toNullTerminatedByteArray(getClass().getResourceAsStream("/JCudaQmcMapper.ptx"));
+        byte[] ptx = JcudaUtils.toNullTerminatedByteArray(Test.class.getResourceAsStream("/JCudaQmcMapper.ptx"));
 
         CUmodule module = new CUmodule();
         cuModuleLoadData(module, ptx);
@@ -35,15 +34,15 @@ public class JcudaQmcMapper extends Mapper<LongWritable, LongWritable, BooleanWr
         cuModuleGetFunction(function, module, "qmc_mapper");
 
         CUdeviceptr guessesOutput = new CUdeviceptr();
-        cuMemAlloc(guessesOutput, size.get() * Sizeof.BYTE);
+        cuMemAlloc(guessesOutput, size * Sizeof.BYTE);
         Pointer kernelParams = Pointer.to(
-                Pointer.to(guessesOutput),
-                Pointer.to(new long[]{size.get()}),
-                Pointer.to(new long[]{offset.get()})
+                guessesOutput,
+                Pointer.to(new long[]{size}),
+                Pointer.to(new long[]{offset})
         );
 
         int blockSizeX = 256;
-        int gridSizeX = (int) Math.ceil((double) size.get() / blockSizeX);
+        int gridSizeX = (int) Math.ceil((double) size / blockSizeX);
         cuLaunchKernel(
                 function,
                 gridSizeX, 1, 1,
@@ -53,8 +52,8 @@ public class JcudaQmcMapper extends Mapper<LongWritable, LongWritable, BooleanWr
         );
         cuCtxSynchronize();
 
-        byte[] guesses = new byte[(int) size.get()];
-        cuMemcpyDtoH(Pointer.to(guesses), guessesOutput, size.get() * Sizeof.BYTE);
+        byte[] guesses = new byte[(int) size];
+        cuMemcpyDtoH(Pointer.to(guesses), guessesOutput, size * Sizeof.BYTE);
 
         long numInside = 0L;
         long numOutside = 0L;
@@ -67,7 +66,7 @@ public class JcudaQmcMapper extends Mapper<LongWritable, LongWritable, BooleanWr
         }
 
         cuMemFree(guessesOutput);
-        context.write(new BooleanWritable(true), new LongWritable(numInside));
-        context.write(new BooleanWritable(false), new LongWritable(numOutside));
+        System.out.println("Inside: " + numInside);
+        System.out.println("Outside: " + numOutside);
     }
 }
