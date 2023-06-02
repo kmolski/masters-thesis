@@ -26,7 +26,7 @@ public class JcudaQmcMapper extends Mapper<LongWritable, LongWritable, BooleanWr
         CUcontext ctx = new CUcontext();
         cuCtxCreate(ctx, 0, device);
 
-        byte[] ptx = JcudaUtils.toNullTerminatedByteArray(getClass().getResourceAsStream("JCudaQmcMapper.ptx"));
+        byte[] ptx = JcudaUtils.toNullTerminatedByteArray(getClass().getResourceAsStream("/JCudaQmcMapper.ptx"));
 
         CUmodule module = new CUmodule();
         cuModuleLoadData(module, ptx);
@@ -34,11 +34,11 @@ public class JcudaQmcMapper extends Mapper<LongWritable, LongWritable, BooleanWr
         CUfunction function = new CUfunction();
         cuModuleGetFunction(function, module, "qmc_mapper");
 
-        CUdeviceptr countsOutput = new CUdeviceptr();
-        cuMemAlloc(countsOutput, 2 * Sizeof.LONG);
+        CUdeviceptr guessesOutput = new CUdeviceptr();
+        cuMemAlloc(guessesOutput, size.get() * Sizeof.BYTE);
         Pointer kernelParams = Pointer.to(
-                countsOutput,
-                Pointer.to(new long[]{offset.get()})
+                guessesOutput,
+                Pointer.to(new long[]{size.get(), offset.get()})
         );
 
         int blockSizeX = 256;
@@ -51,10 +51,21 @@ public class JcudaQmcMapper extends Mapper<LongWritable, LongWritable, BooleanWr
                 kernelParams, null
         );
 
-        long[] counts = new long[2];
-        cuMemcpyDtoH(Pointer.to(counts), countsOutput, 2 * Sizeof.LONG);
+        byte[] guesses = new byte[(int) size.get()];
+        cuMemcpyDtoH(Pointer.to(guesses), guessesOutput, size.get() * Sizeof.BYTE);
+        cuMemFree(guessesOutput);
 
-        context.write(new BooleanWritable(true), new LongWritable(counts[1]));
-        context.write(new BooleanWritable(false), new LongWritable(counts[0]));
+        long numInside = 0L;
+        long numOutside = 0L;
+        for (byte isInside : guesses) {
+            if (isInside == 0) {
+                numOutside++;
+            } else {
+                numInside++;
+            }
+        }
+
+        context.write(new BooleanWritable(true), new LongWritable(numInside));
+        context.write(new BooleanWritable(false), new LongWritable(numOutside));
     }
 }
