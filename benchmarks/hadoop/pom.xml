@@ -30,6 +30,13 @@
     <org.apache.hadoop.version>3.3.5</org.apache.hadoop.version>
   </properties>
 
+  <repositories>
+    <repository>
+      <id>github</id>
+      <url>https://maven.pkg.github.com/kmolski/masters-thesis</url>
+    </repository>
+  </repositories>
+
   <dependencies>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
@@ -68,7 +75,7 @@
     <dependency>
       <groupId>org.jcuda</groupId>
       <artifactId>jcuda</artifactId>
-      <version>11.6.1</version>
+      <version>10.2.0</version>
     </dependency>
   </dependencies>
 
