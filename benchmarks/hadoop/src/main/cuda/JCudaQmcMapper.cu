@@ -1,24 +1,23 @@
 constexpr int BASES[] = {2, 3};
 constexpr int MAX_DIGITS[] = {63, 40};
 
-template<int BASE, int MAX_DIGITS>
-__device__ float get_random_point(const long index, float q[], int d[]) {
+__device__ float get_random_point(const long index, float q[], int d[], int base, int max_digits) {
 
     float value = 0.0f;
 
     long k = index;
 
-    for (int i = 0; i < MAX_DIGITS; i++) {
-        q[i] = (i == 0 ? 1.0f : q[i - 1]) / BASE;
-        d[i] = (int) (k % BASE);
-        k = (k - d[i]) / BASE;
+    for (int i = 0; i < max_digits; i++) {
+        q[i] = (i == 0 ? 1.0f : q[i - 1]) / base;
+        d[i] = (int) (k % base);
+        k = (k - d[i]) / base;
         value += d[i] * q[i];
     }
 
-    for (int i = 0; i < MAX_DIGITS; i++) {
+    for (int i = 0; i < max_digits; i++) {
         d[i]++;
         value += q[i];
-        if (d[i] < BASE) {
+        if (d[i] < base) {
             break;
         }
         value -= (i == 0 ? 1.0f : q[i - 1]);
@@ -38,8 +37,8 @@ __global__ void qmc_mapper(char guesses[], const int64_t count, const int64_t of
         float q[64] = {0.0f};
         int d[64] = {0};
 
-        const float x = get_random_point<BASES[0], MAX_DIGITS[0]>(index_offset, q, d) - 0.5f;
-        const float y = get_random_point<BASES[1], MAX_DIGITS[1]>(index_offset, q, d) - 0.5f;
+        const float x = get_random_point(index_offset, q, d, BASES[0], MAX_DIGITS[0]) - 0.5f;
+        const float y = get_random_point(index_offset, q, d, BASES[1], MAX_DIGITS[1]) - 0.5f;
 
         guesses[index] = (x * x + y * y > 0.25f) ? 1 : 0;
     }

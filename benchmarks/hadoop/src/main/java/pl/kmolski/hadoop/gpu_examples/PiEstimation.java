@@ -81,8 +81,8 @@ public class PiEstimation {
 
   private static final Map<String, Class<? extends Mapper<?, ?, ?, ?>>> MAPPERS = Map.of(
           "cpu", CpuQmcMapper.class,
-          "aparapi", AparapiQmcMapper.class,
-          "jcuda", JcudaQmcMapper.class
+          "opencl", AparapiQmcMapper.class,
+          "cuda", JcudaQmcMapper.class
   );
 
   /**
