@@ -28,6 +28,7 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 import pl.kmolski.hadoop.gpu_examples.wordcount.CpuTokenizerMapper;
+import pl.kmolski.utils.HadoopJobUtils;
 
 import java.io.IOException;
 import java.util.Map;
@@ -42,7 +43,8 @@ public class WordCount {
     );
 
     public static class IntSumReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
-        private IntWritable result = new IntWritable();
+
+        private final IntWritable result = new IntWritable();
 
         public void reduce(Text key, Iterable<IntWritable> values, Context ctx) throws IOException, InterruptedException {
             int sum = 0;
@@ -81,6 +83,6 @@ public class WordCount {
         }
         FileOutputFormat.setOutputPath(job, new Path(otherArgs[otherArgs.length - 1]));
 
-        System.exit(job.waitForCompletion(true) ? 0 : 1);
+        HadoopJobUtils.waitAndReport(job);
     }
 }

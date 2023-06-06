@@ -14,8 +14,6 @@ public class AparapiQmcMapper extends Mapper<LongWritable, LongWritable, Boolean
     public void map(LongWritable offset, LongWritable size, Context context) throws IOException, InterruptedException {
 
         System.setProperty("com.aparapi.logLevel", "FINE");
-        long numInside = 0L;
-        long numOutside = 0L;
 
         int isize = (int) size.get();
         int ioffset = (int) offset.get();
@@ -29,66 +27,50 @@ public class AparapiQmcMapper extends Mapper<LongWritable, LongWritable, Boolean
         }
 
         Kernel kernel = new Kernel() {
-            @Override
-            public void run() {
-                final int i = getGlobalId();
-                final long offsetIndex = i + ioffset;
 
-                float x = 0.0f;
-                long kx = offsetIndex;
+            private float getRandomPoint(long index, float[] q, int[] d, int base, int maxDigits) {
 
-                for (int j = 0; j < 63; j++) {
-                    q[i][j] = (j == 0 ? 1.0f : q[i][j - 1]) / 2;
-                    d[i][j] = (int) (kx % 2);
-                    kx = (kx - d[i][j]) / 2;
-                    x += d[i][j] * q[i][j];
+                float value = 0.0f;
+                long k = index;
+
+                for (int i = 0; i < maxDigits; i++) {
+                    q[i] = (i == 0 ? 1.0f : q[i - 1]) / base;
+                    d[i] = (int) (k % base);
+                    k = (k - d[i]) / base;
+                    value += d[i] * q[i];
                 }
 
                 boolean cont = true;
-                for (int j = 0; j < 63; j++) {
+                for (int i = 0; i < maxDigits; i++) {
                     if (cont) {
-                        d[i][j]++;
-                        x += q[i][j];
-                        if (d[i][j] < 2) {
+                        d[i]++;
+                        value += q[i];
+                        if (d[i] < base) {
                             cont = false;
                         } else {
-                            d[i][j] = 0;
-                            x -= (j == 0 ? 1.0f : q[i][j - 1]);
+                            value -= (i == 0 ? 1.0f : q[i - 1]);
                         }
                     }
                 }
-                x -= 0.5f;
-                // duplicated because Aparapi does not support method calls
-                float y = 0.0f;
-                long ky = offsetIndex;
 
-                for (int j = 0; j < 40; j++) {
-                    q[i][j] = (j == 0 ? 1.0f : q[i][j - 1]) / 3;
-                    d[i][j] = (int) (ky % 3);
-                    ky = (ky - d[i][j]) / 3;
-                    y += d[i][j] * q[i][j];
-                }
+                return value;
+            }
 
-                cont = true;
-                for (int j = 0; j < 40; j++) {
-                    if (cont) {
-                        d[i][j]++;
-                        y += q[i][j];
-                        if (d[i][j] < 3) {
-                            cont = false;
-                        } else {
-                            d[i][j] = 0;
-                            y -= (j == 0 ? 1.0f : q[i][j - 1]);
-                        }
-                    }
-                }
-                y -= 0.5f;
+            @Override
+            public void run() {
+                final int i = getGlobalId();
+                final long indexOffset = i + ioffset;
+
+                final float x = getRandomPoint(indexOffset, q[i], d[i], 2, 63) - 0.5f;
+                final float y = getRandomPoint(indexOffset, q[i], d[i], 3, 40) - 0.5f;
 
                 guesses[i] = (x * x + y * y > 0.25f);
             }
         };
-
         kernel.execute(Range.create(isize));
+
+        long numInside = 0L;
+        long numOutside = 0L;
         for (boolean isOutside : guesses) {
             if (isOutside) {
                 numOutside++;
@@ -96,8 +78,8 @@ public class AparapiQmcMapper extends Mapper<LongWritable, LongWritable, Boolean
                 numInside++;
             }
         }
-        kernel.dispose();
 
+        kernel.dispose();
         context.write(new BooleanWritable(true), new LongWritable(numInside));
         context.write(new BooleanWritable(false), new LongWritable(numOutside));
     }
