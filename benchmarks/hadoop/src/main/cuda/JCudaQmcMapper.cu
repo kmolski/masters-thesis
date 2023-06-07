@@ -27,9 +27,9 @@ __device__ float get_random_point(const long index, float q[], int d[], int base
 }
 
 extern "C"
-__global__ void qmc_mapper(char guesses[], const int64_t count, const int64_t offset) {
+__global__ void qmc_mapper(short guesses[], const int64_t count, const int64_t offset) {
 
-    const int64_t index = blockIdx.x * blockDim.x + threadIdx.x;
+    const int32_t index = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (index < count) {
         const int64_t index_offset = index + offset;
