@@ -63,7 +63,7 @@ public class JcudaQmcMapper extends Mapper<LongWritable, LongWritable, BooleanWr
         cuModuleGetFunction(reduce, module2, "reduce");
 
         CUdeviceptr reduceOutput = new CUdeviceptr();
-        cuMemAlloc(reduceOutput, gridSizeX * Sizeof.SHORT);
+        cuMemAlloc(reduceOutput, (long) gridSizeX * Sizeof.SHORT);
         Pointer kernelParams2 = Pointer.to(
                 Pointer.to(guessesOutput),
                 Pointer.to(reduceOutput),
@@ -80,7 +80,7 @@ public class JcudaQmcMapper extends Mapper<LongWritable, LongWritable, BooleanWr
         cuCtxSynchronize();
 
         short[] sums = new short[gridSizeX];
-        cuMemcpyDtoH(Pointer.to(sums), reduceOutput, gridSizeX * Sizeof.SHORT);
+        cuMemcpyDtoH(Pointer.to(sums), reduceOutput, (long) gridSizeX * Sizeof.SHORT);
 
         long numOutside = IntStream.range(0, sums.length).map(i -> sums[i]).sum();
         long numInside = size.get() - numOutside;
