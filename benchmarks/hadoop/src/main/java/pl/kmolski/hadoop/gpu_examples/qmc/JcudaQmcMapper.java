@@ -54,7 +54,7 @@ public class JcudaQmcMapper extends Mapper<LongWritable, LongWritable, BooleanWr
         );
         cuCtxSynchronize();
 
-        byte[] ptx2 = JcudaUtils.toNullTerminatedByteArray(getClass().getResourceAsStream("/CudaReduction.ptx"));
+        byte[] ptx2 = JcudaUtils.toNullTerminatedByteArray(getClass().getResourceAsStream("/CudaShortReduction.ptx"));
 
         CUmodule module2 = new CUmodule();
         cuModuleLoadData(module2, ptx2);
@@ -74,7 +74,7 @@ public class JcudaQmcMapper extends Mapper<LongWritable, LongWritable, BooleanWr
                 reduce,
                 gridSizeX, 1, 1,
                 blockSizeX, 1, 1,
-                blockSizeX * Sizeof.SHORT, null,
+                blockSizeX * Sizeof.SHORT * (blockSizeX <= 32 ? 2 : 1), null,
                 kernelParams2, null
         );
         cuCtxSynchronize();
