@@ -9,7 +9,6 @@ import org.apache.hadoop.mapreduce.Mapper;
 import pl.kmolski.utils.JcudaUtils;
 
 import java.io.IOException;
-import java.util.stream.IntStream;
 
 import static jcuda.driver.JCudaDriver.*;
 
@@ -27,17 +26,17 @@ public class JcudaQmcMapper extends Mapper<LongWritable, LongWritable, BooleanWr
         CUcontext ctx = new CUcontext();
         cuCtxCreate(ctx, 0, device);
 
-        byte[] ptx1 = JcudaUtils.toNullTerminatedByteArray(getClass().getResourceAsStream("/JCudaQmcMapper.ptx"));
+        byte[] ptx = JcudaUtils.toNullTerminatedByteArray(getClass().getResourceAsStream("/JCudaQmcMapper.ptx"));
 
-        CUmodule module1 = new CUmodule();
-        cuModuleLoadData(module1, ptx1);
+        CUmodule module = new CUmodule();
+        cuModuleLoadData(module, ptx);
 
         CUfunction qmcMapper = new CUfunction();
-        cuModuleGetFunction(qmcMapper, module1, "qmc_mapper");
+        cuModuleGetFunction(qmcMapper, module, "qmc_mapper");
 
         CUdeviceptr guessesOutput = new CUdeviceptr();
         cuMemAlloc(guessesOutput, size.get() * Sizeof.SHORT);
-        Pointer kernelParams1 = Pointer.to(
+        Pointer kernelParams = Pointer.to(
                 Pointer.to(guessesOutput),
                 Pointer.to(new long[]{size.get()}),
                 Pointer.to(new long[]{offset.get()})
@@ -50,43 +49,14 @@ public class JcudaQmcMapper extends Mapper<LongWritable, LongWritable, BooleanWr
                 gridSizeX, 1, 1,
                 blockSizeX, 1, 1,
                 0, null,
-                kernelParams1, null
+                kernelParams, null
         );
         cuCtxSynchronize();
 
-        byte[] ptx2 = JcudaUtils.toNullTerminatedByteArray(getClass().getResourceAsStream("/CudaReduction.ptx"));
-
-        CUmodule module2 = new CUmodule();
-        cuModuleLoadData(module2, ptx2);
-
-        CUfunction reduce = new CUfunction();
-        cuModuleGetFunction(reduce, module2, "reduce");
-
-        CUdeviceptr reduceOutput = new CUdeviceptr();
-        cuMemAlloc(reduceOutput, (long) gridSizeX * Sizeof.SHORT);
-        Pointer kernelParams2 = Pointer.to(
-                Pointer.to(guessesOutput),
-                Pointer.to(reduceOutput),
-                Pointer.to(new long[]{size.get()})
-        );
-
-        cuLaunchKernel(
-                reduce,
-                gridSizeX, 1, 1,
-                blockSizeX, 1, 1,
-                blockSizeX * Sizeof.SHORT, null,
-                kernelParams2, null
-        );
-        cuCtxSynchronize();
-
-        short[] sums = new short[gridSizeX];
-        cuMemcpyDtoH(Pointer.to(sums), reduceOutput, (long) gridSizeX * Sizeof.SHORT);
-
-        long numOutside = IntStream.range(0, sums.length).map(i -> sums[i]).sum();
+        long numOutside = JcudaUtils.sumShortArray(size.get(), guessesOutput);
         long numInside = size.get() - numOutside;
 
         cuMemFree(guessesOutput);
-        cuMemFree(reduceOutput);
         context.write(new BooleanWritable(true), new LongWritable(numInside));
         context.write(new BooleanWritable(false), new LongWritable(numOutside));
     }
