@@ -5,8 +5,8 @@ __global__ void reduce(const short input[], short output[], const int64_t count)
     extern __shared__ short shared_data[];
 
     const int32_t tid = threadIdx.x;
-    const int32_t index = blockIdx.x * blockDim.x * 2 + tid;
     const int32_t gridSize = blockDim.x * gridDim.x * 2;
+    int32_t index = blockIdx.x * blockDim.x * 2 + tid;
 
     short sum = 0;
     while (index < count) {
