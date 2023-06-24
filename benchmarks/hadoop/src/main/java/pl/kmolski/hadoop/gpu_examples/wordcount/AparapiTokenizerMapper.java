@@ -24,36 +24,30 @@ public class AparapiTokenizerMapper extends Mapper<Object, Text, Text, IntWritab
 
     private static final IntWritable one = new IntWritable(1);
 
+    private boolean isDelimiter(byte character) {
+        return character == ' '
+            || character == '\t'
+            || character == '\n'
+            || character == '\r'
+            || character == '\f';
+    }
+
     public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
 
         System.setProperty("com.aparapi.logLevel", "FINE");
         final byte[] chunk = value.getBytes();
         final int chunkLen = value.getLength();
 
-        final short[] isWordStart = new short[chunkLen - 1];
-        Kernel findWordStarts = new WordSearchKernel() {
-
-            @Override
-            public void run() {
-                final int i = getGlobalId();
-
-                final boolean currentIsDelimiter = isDelimiter(chunk[i]);
-                final boolean nextIsDelimiter = isDelimiter(chunk[i + 1]);
-
-                if (i == 0 && !currentIsDelimiter) {
-                    isWordStart[i] = 1;
-                }
-
-                if (currentIsDelimiter && !nextIsDelimiter) {
-                    isWordStart[i + 1] = 1;
-                } else {
-                    isWordStart[i + 1] = 0;
-                }
-            }
-        };
-        findWordStarts.execute(Range.create(chunkLen - 1));
-
-        final int[] wordStart = IntStream.range(0, chunkLen - 1).parallel().filter(i -> isWordStart[i] == 1).toArray();
+        final int[] wordStart = IntStream.range(0, chunkLen).parallel()
+                .filter(i -> {
+                    final boolean currentIsDelimiter = isDelimiter(chunk[i]);
+                    if (i == 0) {
+                        return !currentIsDelimiter;
+                    } else {
+                        final boolean prevIsDelimiter = isDelimiter(chunk[i - 1]);
+                        return prevIsDelimiter && !currentIsDelimiter;
+                    }
+                }).toArray();
         final int[] wordLength = new int[wordStart.length];
         Kernel findWordEnds = new WordSearchKernel() {
 
@@ -75,13 +69,12 @@ public class AparapiTokenizerMapper extends Mapper<Object, Text, Text, IntWritab
             }
         };
         findWordEnds.execute(Range.create(wordStart.length));
+        findWordEnds.dispose();
 
         Text word = new Text();
         for (int i = 0; i < wordStart.length; i++) {
             word.set(chunk, wordStart[i], wordLength[i]);
             context.write(word, one);
         }
-        findWordStarts.dispose();
-        findWordEnds.dispose();
     }
 }

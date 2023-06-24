@@ -60,7 +60,7 @@ public class WordCount {
     public static void main(String[] args) throws Exception {
         Configuration conf = new Configuration();
         String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
-        if (otherArgs.length < 3) {
+        if (otherArgs.length < 2) {
             System.err.println("Usage: wordcount <mapper> <in> [<in>...] <out>");
             System.exit(2);
         }
@@ -79,10 +79,12 @@ public class WordCount {
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(IntWritable.class);
 
-        for (int i = 1; i < otherArgs.length - 1; ++i) {
-            FileInputFormat.addInputPath(job, new Path(otherArgs[i]));
+        if (otherArgs.length >= 3) {
+            for (int i = 1; i < otherArgs.length - 1; ++i) {
+                FileInputFormat.addInputPath(job, new Path(otherArgs[i]));
+            }
+            FileOutputFormat.setOutputPath(job, new Path(otherArgs[otherArgs.length - 1]));
         }
-        FileOutputFormat.setOutputPath(job, new Path(otherArgs[otherArgs.length - 1]));
 
         HadoopJobUtils.waitAndReport(job);
     }
