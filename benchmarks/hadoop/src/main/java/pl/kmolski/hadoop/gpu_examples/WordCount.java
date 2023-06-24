@@ -27,6 +27,7 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
+import pl.kmolski.hadoop.gpu_examples.wordcount.AparapiTokenizerMapper;
 import pl.kmolski.hadoop.gpu_examples.wordcount.CpuTokenizerMapper;
 import pl.kmolski.utils.HadoopJobUtils;
 
@@ -37,8 +38,8 @@ import java.util.Optional;
 public class WordCount {
 
     private static final Map<String, Class<? extends Mapper<?, ?, ?, ?>>> MAPPERS = Map.of(
-            "cpu", CpuTokenizerMapper.class
-            //"opencl", AparapiQmcMapper.class,
+            "cpu", CpuTokenizerMapper.class,
+            "opencl", AparapiTokenizerMapper.class
             //"cuda", JcudaQmcMapper.class
     );
 
