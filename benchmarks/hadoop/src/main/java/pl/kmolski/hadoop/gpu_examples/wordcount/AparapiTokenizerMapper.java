@@ -28,7 +28,7 @@ public class AparapiTokenizerMapper extends Mapper<Object, Text, Text, IntWritab
 
         System.setProperty("com.aparapi.logLevel", "FINE");
         final byte[] chunk = value.getBytes();
-        final int chunkLen = chunk.length;
+        final int chunkLen = value.getLength();
 
         final short[] isWordStart = new short[chunkLen - 1];
         Kernel findWordStarts = new WordSearchKernel() {
