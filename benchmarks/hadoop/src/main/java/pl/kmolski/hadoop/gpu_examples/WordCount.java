@@ -79,6 +79,11 @@ public class WordCount {
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(IntWritable.class);
 
+        if (mapperName.equals("opencl") || mapperName.equals("cuda")) {
+            conf.set("mapreduce.job.running.map.limit", "1");
+            conf.set("mapreduce.job.max.split.locations", "1");
+        }
+
         if (otherArgs.length >= 3) {
             for (int i = 1; i < otherArgs.length - 1; ++i) {
                 FileInputFormat.addInputPath(job, new Path(otherArgs[i]));

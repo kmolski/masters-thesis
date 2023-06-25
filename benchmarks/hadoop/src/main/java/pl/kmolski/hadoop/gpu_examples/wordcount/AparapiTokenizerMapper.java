@@ -24,30 +24,37 @@ public class AparapiTokenizerMapper extends Mapper<Object, Text, Text, IntWritab
 
     private static final IntWritable one = new IntWritable(1);
 
-    private boolean isDelimiter(byte character) {
-        return character == ' '
-            || character == '\t'
-            || character == '\n'
-            || character == '\r'
-            || character == '\f';
-    }
-
     public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
 
         System.setProperty("com.aparapi.logLevel", "FINE");
         final byte[] chunk = value.getBytes();
         final int chunkLen = value.getLength();
 
-        final int[] wordStart = IntStream.range(0, chunkLen).parallel()
-                .filter(i -> {
-                    final boolean currentIsDelimiter = isDelimiter(chunk[i]);
-                    if (i == 0) {
-                        return !currentIsDelimiter;
-                    } else {
-                        final boolean prevIsDelimiter = isDelimiter(chunk[i - 1]);
-                        return prevIsDelimiter && !currentIsDelimiter;
-                    }
-                }).toArray();
+        final short[] isWordStart = new short[chunkLen];
+        Kernel findWordStarts = new WordSearchKernel() {
+
+            @Override
+            public void run() {
+                final int i = getGlobalId();
+
+                final boolean currentIsDelimiter = isDelimiter(chunk[i]);
+                final boolean nextIsDelimiter = isDelimiter(chunk[i + 1]);
+
+                if (i == 0 && !currentIsDelimiter) {
+                    isWordStart[i] = 1;
+                }
+
+                if (currentIsDelimiter && !nextIsDelimiter) {
+                    isWordStart[i + 1] = 1;
+                } else {
+                    isWordStart[i + 1] = 0;
+                }
+            }
+        };
+        findWordStarts.execute(Range.create(chunkLen - 1));
+        findWordStarts.dispose();
+
+        final int[] wordStart = IntStream.range(0, chunkLen - 1).parallel().filter(i -> isWordStart[i] == 1).toArray();
         final int[] wordLength = new int[wordStart.length];
         Kernel findWordEnds = new WordSearchKernel() {
 
