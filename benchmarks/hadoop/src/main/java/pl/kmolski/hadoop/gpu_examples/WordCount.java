@@ -38,8 +38,7 @@ import java.util.Optional;
 public class WordCount {
 
     private static final Map<String, Class<? extends Mapper<?, ?, ?, ?>>> MAPPERS = Map.of(
-            "cpu", CpuTokenizerMapper.class,
-            "opencl", AparapiTokenizerMapper.class
+            "cpu", CpuTokenizerMapper.class
             //"cuda", JcudaQmcMapper.class
     );
 
@@ -79,7 +78,7 @@ public class WordCount {
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(IntWritable.class);
 
-        if (mapperName.equals("opencl") || mapperName.equals("cuda")) {
+        if (mapperName.equals("cuda")) {
             conf.set("mapreduce.job.running.map.limit", "1");
             conf.set("mapreduce.job.max.split.locations", "1");
         }
