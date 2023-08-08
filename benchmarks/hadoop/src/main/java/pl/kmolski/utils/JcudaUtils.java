@@ -28,7 +28,7 @@ public class JcudaUtils {
         return outStream.toByteArray();
     }
 
-    public static long sumShortArray(long size, CUdeviceptr guessesOutput) throws IOException {
+    public static long sumShortArray(long size, CUdeviceptr inputArray) throws IOException {
 
         byte[] ptx = JcudaUtils.toNullTerminatedByteArray(JcudaUtils.class.getResourceAsStream("/CudaReduction.ptx"));
 
@@ -41,11 +41,11 @@ public class JcudaUtils {
         int blockSizeX = 256;
         int gridSizeX = (int) Math.ceil((double) size / blockSizeX);
 
-        CUdeviceptr reduceOutput = new CUdeviceptr();
-        cuMemAlloc(reduceOutput, (long) gridSizeX * Sizeof.SHORT);
+        CUdeviceptr outputArray = new CUdeviceptr();
+        cuMemAlloc(outputArray, (long) gridSizeX * Sizeof.SHORT);
         Pointer kernelParams = Pointer.to(
-                Pointer.to(guessesOutput),
-                Pointer.to(reduceOutput),
+                Pointer.to(inputArray),
+                Pointer.to(outputArray),
                 Pointer.to(new long[]{size})
         );
 
@@ -59,8 +59,8 @@ public class JcudaUtils {
         cuCtxSynchronize();
 
         short[] sums = new short[gridSizeX];
-        cuMemcpyDtoH(Pointer.to(sums), reduceOutput, (long) gridSizeX * Sizeof.SHORT);
-        cuMemFree(reduceOutput);
+        cuMemcpyDtoH(Pointer.to(sums), outputArray, (long) gridSizeX * Sizeof.SHORT);
+        cuMemFree(outputArray);
         return IntStream.range(0, sums.length).map(i -> sums[i]).sum();
     }
 }
