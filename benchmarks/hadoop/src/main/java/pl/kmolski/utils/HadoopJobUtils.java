@@ -20,6 +20,6 @@ public class HadoopJobUtils {
         }
 
         final double duration = (Time.monotonicNow() - startTime) / 1000.0;
-        System.out.println("Job Finished in " + duration + " seconds");
+        System.out.println("Job finished in: " + duration);
     }
 }

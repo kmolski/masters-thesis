@@ -64,38 +64,24 @@
 % PERSONALIZACJA PRACY – DANE PRACY           %
 %                                             %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\FirstNameAuthor}{Krzysztof}
+\newcommand{\SurnameAuthor}{Molski}
+\newcommand{\IdAuthor}{282711}
 
-% Proszę wpisać swoje dane w poniższych definicjach.
-
-% TODO
-% dane autora
-\newcommand{\FirstNameAuthor}{Imię}
-\newcommand{\SurnameAuthor}{Nazwisko}
-\newcommand{\IdAuthor}{$\langle$wpisać właściwy$\rangle$}   % numer albumu  (bez $\langle$ i $\rangle$)
-
-% drugi autor:
-%\newcommand{\FirstNameCoauthor}{Imię}   % Jeżeli jest drugi autor, to tutaj należy podać imię.
-%\newcommand{\SurnameCoauthor}{Nazwisko} % Jeżeli jest drugi autor, to tutaj należy podać nazwisko.
-%\newcommand{\IdCoauthor}{$\langle$wpisać właściwy$\rangle$}  % numer albumu drugiego autora (bez $\langle$ i $\rangle$)
-% Gdy nie ma drugiego autora, należy zostawić poniższe definicje puste, jak poniżej. Gdy jest drugi autor, należy zakomentować te linie.
-\newcommand{\FirstNameCoauthor}{} % Jeżeli praca ma tylko jednego autora, to dane drugiego autora zostają puste.
-\newcommand{\SurnameCoauthor}{}   % Jeżeli praca ma tylko jednego autora, to dane drugiego autora zostają puste.
-\newcommand{\IdCoauthor}{}  % Jeżeli praca ma tylko jednego autora, to dane drugiego autora zostają puste.
+\newcommand{\FirstNameCoauthor}{}
+\newcommand{\SurnameCoauthor}{}
+\newcommand{\IdCoauthor}{}
 %%%%%%%%%%
 
-\newcommand{\Supervisor}{$\langle$tytuł lub stopień naukowy oraz imię i nazwisko$\rangle$}     % dane promotora (bez $\langle$ i $\rangle$)
-\newcommand{\Title}{Tytuł pracy dyplomowej magisterskiej}           % tytuł pracy po polsku
-\newcommand{\TitleAlt}{Thesis title in English}                     % thesis title in English
-\newcommand{\Program}{$\langle$wpisać właściwy$\rangle$}            % kierunek studiów  (bez $\langle$ i $\rangle$)
-\newcommand{\Specialisation}{$\langle$wpisać właściwą$\rangle$}     % specjalność  (bez $\langle$ i $\rangle$)
-\newcommand{\Departament}{$\langle$wpisać właściwą$\rangle$}        % katedra promotora  (bez $\langle$ i $\rangle$)
+\newcommand{\Supervisor}{dr hab. inż. Dariusz Mrozek}
+\newcommand{\Title}{Budowa klastra Big Data w środowisku minikomputerów jednopłytkowych z akceleracją GPU}
+\newcommand{\TitleAlt}{Building a Big Data cluster in an environment of single-board mini-computers with GPU acceleration}
+\newcommand{\Program}{Informatyka}
+\newcommand{\Specialisation}{Internet i technologie sieciowe}
+\newcommand{\Departament}{Informatyki Stosowanej}
 
-% Jeżeli został wyznaczony promotor pomocniczy lub opiekun, proszę go/ją wpisać ...
-\newcommand{\Consultant}{$\langle$stopień naukowy imię i nazwisko$\rangle$} % dane promotora pomocniczego, opiekuna (bez $\langle$ i $\rangle$)
-% ... w przeciwnym razie proszę zostawić puste miejsce jak poniżej:
-%\newcommand{\Consultant}{} % brak promotowa pomocniczego / opiekuna
+\newcommand{\Consultant}{}
 
-% koniec fragmentu do modyfikacji
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -128,7 +114,6 @@
 
 %%% No to zaczynamy pisać pracę :-) %%%%
 
-% TODO
 \input{chapters/00.tex} % informacje redakcyjne
 
 
@@ -148,19 +133,10 @@
 
 %%%%%%%%%%%%%% wlasciwa tresc pracy %%%%%%%%%%%%%%%%%
 
-% TODO
 \input{chapters/01.tex}  % wstęp
-
-% TODO
 \input{chapters/02.tex} % [Analiza tematu]
-
-% TODO
 \input{chapters/03.tex} % [Przedmiot pracy]
-
-% TODO
 \input{chapters/04.tex} % Badania
-
-% TODO
 \input{chapters/05.tex} % Podsumowanie
 
 \backmatter
@@ -172,14 +148,9 @@
 
 \begin{appendices}
 
-% TODO
 \input{chapters/06.tex} % dokumentacja techniczna
-
-% TODO
 \input{chapters/07.tex} % Spis skrótów i symboli
-
-% TODO
-\input{chapters/08.tex} % Lista dodatkowych plików, uzupełniających tekst pracy – jeżeli dotyczny, w przecinym razie – zakomentuj!
+\input{chapters/08.tex} % Lista dodatkowych plików
 
 \listoffigures
 \addcontentsline{toc}{chapter}{Spis rysunków}

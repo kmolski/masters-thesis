@@ -26,17 +26,17 @@ public class JcudaQmcMapper extends Mapper<LongWritable, LongWritable, BooleanWr
         CUcontext ctx = new CUcontext();
         cuCtxCreate(ctx, 0, device);
 
-        byte[] ptx1 = JcudaUtils.toNullTerminatedByteArray(getClass().getResourceAsStream("/JCudaQmcMapper.ptx"));
+        byte[] ptx = JcudaUtils.toNullTerminatedByteArray(getClass().getResourceAsStream("/JCudaQmcMapper.ptx"));
 
-        CUmodule module1 = new CUmodule();
-        cuModuleLoadData(module1, ptx1);
+        CUmodule module = new CUmodule();
+        cuModuleLoadData(module, ptx);
 
         CUfunction qmcMapper = new CUfunction();
-        cuModuleGetFunction(qmcMapper, module1, "qmc_mapper");
+        cuModuleGetFunction(qmcMapper, module, "qmc_mapper");
 
         CUdeviceptr guessesOutput = new CUdeviceptr();
         cuMemAlloc(guessesOutput, size.get() * Sizeof.SHORT);
-        Pointer kernelParams1 = Pointer.to(
+        Pointer kernelParams = Pointer.to(
                 Pointer.to(guessesOutput),
                 Pointer.to(new long[]{size.get()}),
                 Pointer.to(new long[]{offset.get()})
@@ -49,11 +49,11 @@ public class JcudaQmcMapper extends Mapper<LongWritable, LongWritable, BooleanWr
                 gridSizeX, 1, 1,
                 blockSizeX, 1, 1,
                 0, null,
-                kernelParams1, null
+                kernelParams, null
         );
         cuCtxSynchronize();
 
-        long numOutside = JcudaUtils.sumShortArray(size, guessesOutput);
+        long numOutside = JcudaUtils.sumShortArray(size.get(), guessesOutput);
         long numInside = size.get() - numOutside;
 
         cuMemFree(guessesOutput);

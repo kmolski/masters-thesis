@@ -79,11 +79,12 @@ public class PiEstimation {
 
   private static final String TMP_DIR_PREFIX = PiEstimation.class.getSimpleName();
 
-  private static final Map<String, Class<? extends Mapper<?, ?, ?, ?>>> MAPPERS = Map.of(
-          "cpu", CpuQmcMapper.class,
-          "opencl", AparapiQmcMapper.class,
-          "cuda", JcudaQmcMapper.class
-  );
+  private static final Map<String, Class<? extends Mapper<?, ?, ?, ?>>> MAPPERS =
+          Map.of(
+                  "cpu", CpuQmcMapper.class,
+                  "opencl", AparapiQmcMapper.class,
+                  "cuda", JcudaQmcMapper.class
+          );
 
   /**
    * Reducer class for Pi estimation.
@@ -222,16 +223,15 @@ public class PiEstimation {
       System.exit(2);
     }
 
-    final int nMaps = Integer.parseInt(args[0]);
-    final long nSamples = Long.parseLong(args[1]);
-    final String mapperName = args[2];
+    var nMaps = Integer.parseInt(args[0]);
+    var nSamples = Long.parseLong(args[1]);
+    var mapperName = args[2];
     long now = System.currentTimeMillis();
-    int rand = new Random().nextInt(Integer.MAX_VALUE);
-    final Path tmpDir = new Path(TMP_DIR_PREFIX + "_" + now + "_" + rand);
-    final Class<? extends Mapper<?, ?, ?, ?>> mapper =
-            Optional.ofNullable(MAPPERS.get(mapperName)).orElseThrow(
-                    () -> new IllegalArgumentException("Unknown mapper: " + mapperName)
-            );
+    var rand = new Random().nextInt(Integer.MAX_VALUE);
+    var tmpDir = new Path(TMP_DIR_PREFIX + "_" + now + "_" + rand);
+    var mapper = Optional.ofNullable(MAPPERS.get(mapperName)).orElseThrow(
+            () -> new IllegalArgumentException("Unknown mapper: " + mapperName)
+    );
 
     System.out.println("Number of Maps  = " + nMaps);
     System.out.println("Samples per Map = " + nSamples);
