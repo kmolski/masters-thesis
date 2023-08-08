@@ -6,6 +6,7 @@ import org.apache.hadoop.io.*;
 import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import pl.kmolski.hadoop.gpu_examples.fuzzy.CpuFuzzyGenMapper;
+import pl.kmolski.hadoop.gpu_examples.fuzzy.JcudaFuzzyGenMapper;
 import pl.kmolski.utils.HadoopJobUtils;
 
 import java.io.DataInput;
@@ -21,7 +22,8 @@ public class FuzzyGen {
     private static final String RECORD_COUNT = "mapreduce.fuzzygen.record-count";
     private static final Map<String, Class<? extends Mapper<?, ?, ?, ?>>> MAPPERS =
             Map.of(
-                    "cpu", CpuFuzzyGenMapper.class
+                    "cpu", CpuFuzzyGenMapper.class,
+                    "cuda", JcudaFuzzyGenMapper.class
             );
 
     private static class RangeInputFormat extends InputFormat<LongWritable, NullWritable> {
@@ -139,7 +141,6 @@ public class FuzzyGen {
             System.err.printf("Usage: %s <mapper> <nRecords> <outputDir>%n", FuzzyGen.class.getName());
             System.exit(2);
         }
-
 
         var mapperName = args[0];
         var mapper = Optional.ofNullable(MAPPERS.get(mapperName)).orElseThrow(
