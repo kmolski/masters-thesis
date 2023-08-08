@@ -28,6 +28,7 @@ public class JcudaFuzzyGenMapper extends Mapper<LongWritable, NullWritable, Null
 
         JCudaDriver.setExceptionsEnabled(true);
         JCurand.setExceptionsEnabled(true);
+        cuInit(0);
 
         CUdevice device = new CUdevice();
         cuDeviceGet(device, 0);
