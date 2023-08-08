@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Random;
 
-import static pl.kmolski.hadoop.gpu_examples.FuzzyGen.RECORD_SIZE;
+import static pl.kmolski.hadoop.gpu_examples.fuzzy.FuzzyConstants.RECORD_SIZE;
 
 public class CpuFuzzyGenMapper extends Mapper<LongWritable, NullWritable, NullWritable, BytesWritable> {
 

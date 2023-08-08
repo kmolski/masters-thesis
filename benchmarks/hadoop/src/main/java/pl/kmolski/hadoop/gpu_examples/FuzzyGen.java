@@ -18,8 +18,6 @@ import java.util.Optional;
 
 public class FuzzyGen {
 
-    public static final int RECORD_SIZE = 256;
-
     private static final String RECORD_COUNT = "mapreduce.fuzzygen.record-count";
     private static final Map<String, Class<? extends Mapper<?, ?, ?, ?>>> MAPPERS =
             Map.of(
@@ -154,5 +152,4 @@ public class FuzzyGen {
         System.out.printf("Mapper implementation = %s%n", mapper);
         generateRecords(mapper, nRecords, outputDir);
     }
-
 }
