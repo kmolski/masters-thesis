@@ -32,6 +32,8 @@ public class FuzzyGen {
             private long firstRow;
             private long rowCount;
 
+            public RangeInputSplit() {}
+
             public RangeInputSplit(long offset, long length) {
                 firstRow = offset;
                 rowCount = length;
