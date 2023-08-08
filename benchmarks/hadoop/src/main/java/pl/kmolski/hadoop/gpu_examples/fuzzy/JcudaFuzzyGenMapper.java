@@ -58,7 +58,7 @@ public class JcudaFuzzyGenMapper extends Mapper<LongWritable, NullWritable, Null
         var buffer = ByteBuffer.wrap(bytes);
         for (int i = 0; i < byteCount; i += RECORD_BYTES) {
             var writableBuf = new byte[RECORD_BYTES];
-            buffer.get(writableBuf, i, RECORD_BYTES);
+            buffer.get(writableBuf, 0, RECORD_BYTES);
             context.write(NullWritable.get(), new BytesWritable(writableBuf));
         }
 
