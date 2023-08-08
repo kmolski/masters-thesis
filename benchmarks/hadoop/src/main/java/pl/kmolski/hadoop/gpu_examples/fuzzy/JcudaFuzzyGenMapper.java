@@ -23,6 +23,8 @@ import static pl.kmolski.hadoop.gpu_examples.fuzzy.FuzzyConstants.RECORD_SIZE;
 
 public class JcudaFuzzyGenMapper extends Mapper<LongWritable, NullWritable, NullWritable, BytesWritable> {
 
+    private static final int RECORD_BYTES = RECORD_SIZE * Float.BYTES;
+
     @Override
     public void map(LongWritable key, NullWritable ignored, Context context) throws IOException, InterruptedException {
 
@@ -54,9 +56,9 @@ public class JcudaFuzzyGenMapper extends Mapper<LongWritable, NullWritable, Null
         cuMemcpyDtoH(Pointer.to(bytes), randOutput, byteCount);
 
         var buffer = ByteBuffer.wrap(bytes);
-        for (int i = 0; i < byteCount; i += RECORD_SIZE) {
-            var writableBuf = new byte[RECORD_SIZE * Float.BYTES];
-            buffer.get(writableBuf, i, RECORD_SIZE * Float.BYTES);
+        for (int i = 0; i < byteCount; i += RECORD_BYTES) {
+            var writableBuf = new byte[RECORD_BYTES];
+            buffer.get(writableBuf, i, RECORD_BYTES);
             context.write(NullWritable.get(), new BytesWritable(writableBuf));
         }
 
