@@ -2,6 +2,8 @@ package pl.kmolski.hadoop.gpu_examples.fuzzy;
 
 import jcuda.Pointer;
 import jcuda.Sizeof;
+import jcuda.driver.CUcontext;
+import jcuda.driver.CUdevice;
 import jcuda.driver.CUdeviceptr;
 import jcuda.driver.JCudaDriver;
 import jcuda.jcurand.JCurand;
@@ -27,6 +29,12 @@ public class JcudaFuzzyGenMapper extends Mapper<LongWritable, NullWritable, Null
         JCudaDriver.setExceptionsEnabled(true);
         JCurand.setExceptionsEnabled(true);
 
+        CUdevice device = new CUdevice();
+        cuDeviceGet(device, 0);
+
+        CUcontext ctx = new CUcontext();
+        cuCtxCreate(ctx, 0, device);
+
         var nRecords = key.get();
         var floatCount = nRecords * RECORD_SIZE;
         var byteCount = floatCount * Sizeof.FLOAT;
@@ -39,6 +47,7 @@ public class JcudaFuzzyGenMapper extends Mapper<LongWritable, NullWritable, Null
         curandSetPseudoRandomGeneratorSeed(generator, System.currentTimeMillis());
 
         curandGenerateUniform(generator, randOutput, floatCount);
+        cuCtxSynchronize();
 
         var bytes = new byte[(int) byteCount];
         cuMemcpyDtoH(Pointer.to(bytes), randOutput, byteCount);
