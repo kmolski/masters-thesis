@@ -5,7 +5,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.*;
 import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import pl.kmolski.hadoop.gpu_examples.fuzzy.CpuFuzzyGenMapper;
 import pl.kmolski.hadoop.gpu_examples.fuzzy.JcudaFuzzyGenMapper;
 import pl.kmolski.utils.HadoopJobUtils;
@@ -127,7 +127,7 @@ public class FuzzyGen {
         job.setJarByClass(FuzzyGen.class);
 
         job.setInputFormatClass(RangeFormat.class);
-        job.setOutputFormatClass(TextOutputFormat.class);
+        job.setOutputFormatClass(SequenceFileOutputFormat.class);
         job.setOutputKeyClass(NullWritable.class);
         job.setOutputValueClass(BytesWritable.class);
 

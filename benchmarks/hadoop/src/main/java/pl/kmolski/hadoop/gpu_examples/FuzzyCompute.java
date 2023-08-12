@@ -7,16 +7,14 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-import org.apache.hadoop.mapreduce.lib.input.FixedLengthInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import pl.kmolski.hadoop.gpu_examples.fuzzy.CpuFuzzyComputeMapper;
 import pl.kmolski.utils.HadoopJobUtils;
 
 import java.util.Map;
 import java.util.Optional;
-
-import static pl.kmolski.hadoop.gpu_examples.fuzzy.FuzzyUtils.RECORD_BYTES;
 
 public class FuzzyCompute {
 
@@ -33,9 +31,8 @@ public class FuzzyCompute {
         job.setJobName(FuzzyCompute.class.getSimpleName());
         job.setJarByClass(FuzzyCompute.class);
 
-        FixedLengthInputFormat.setRecordLength(job.getConfiguration(), RECORD_BYTES);
-        job.setInputFormatClass(FixedLengthInputFormat.class);
-        job.setOutputFormatClass(TextOutputFormat.class);
+        job.setInputFormatClass(SequenceFileInputFormat.class);
+        job.setOutputFormatClass(SequenceFileOutputFormat.class);
         job.setOutputKeyClass(NullWritable.class);
         job.setOutputValueClass(BytesWritable.class);
 
