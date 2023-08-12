@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Random;
 
+import static pl.kmolski.hadoop.gpu_examples.fuzzy.FuzzyConstants.RECORD_BYTES;
 import static pl.kmolski.hadoop.gpu_examples.fuzzy.FuzzyConstants.RECORD_SIZE;
 
 public class CpuFuzzyGenMapper extends Mapper<LongWritable, NullWritable, NullWritable, BytesWritable> {
@@ -20,7 +21,7 @@ public class CpuFuzzyGenMapper extends Mapper<LongWritable, NullWritable, NullWr
         var random = new Random();
 
         for (int i = 0; i < nRecords; ++i) {
-            var bytes = new byte[RECORD_SIZE * Float.BYTES];
+            var bytes = new byte[RECORD_BYTES];
             var buffer = ByteBuffer.wrap(bytes);
             for (int j = 0; j < RECORD_SIZE; ++j) {
                 buffer.putFloat(random.nextFloat());
