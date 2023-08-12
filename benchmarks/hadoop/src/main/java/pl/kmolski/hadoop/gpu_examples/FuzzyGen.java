@@ -5,6 +5,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.*;
 import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import pl.kmolski.hadoop.gpu_examples.fuzzy.CpuFuzzyGenMapper;
 import pl.kmolski.hadoop.gpu_examples.fuzzy.JcudaFuzzyGenMapper;
 import pl.kmolski.utils.HadoopJobUtils;
@@ -26,17 +27,17 @@ public class FuzzyGen {
                     "cuda", JcudaFuzzyGenMapper.class
             );
 
-    private static class RangeInputFormat extends InputFormat<LongWritable, NullWritable> {
-        private static class RangeInputSplit extends InputSplit implements Writable {
+    private static class RangeFormat extends InputFormat<LongWritable, NullWritable> {
+        private static class RangeSplit extends InputSplit implements Writable {
 
-            private long firstRow;
-            private long rowCount;
+            private long first;
+            private long count;
 
-            public RangeInputSplit() {}
+            public RangeSplit() {}
 
-            public RangeInputSplit(long offset, long length) {
-                firstRow = offset;
-                rowCount = length;
+            public RangeSplit(long first, long count) {
+                this.first = first;
+                this.count = count;
             }
 
             public long getLength() {
@@ -48,31 +49,31 @@ public class FuzzyGen {
             }
 
             public void readFields(DataInput in) throws IOException {
-                firstRow = WritableUtils.readVLong(in);
-                rowCount = WritableUtils.readVLong(in);
+                first = WritableUtils.readVLong(in);
+                count = WritableUtils.readVLong(in);
             }
 
             public void write(DataOutput out) throws IOException {
-                WritableUtils.writeVLong(out, firstRow);
-                WritableUtils.writeVLong(out, rowCount);
+                WritableUtils.writeVLong(out, first);
+                WritableUtils.writeVLong(out, count);
             }
         }
 
-        private static class RangeRecordReader extends RecordReader<LongWritable, NullWritable> {
+        private static class RangeReader extends RecordReader<LongWritable, NullWritable> {
 
-            private long totalRows;
-            private LongWritable key = null;
+            private long count;
+            private LongWritable currentKey = null;
 
-            public RangeRecordReader() {}
+            public RangeReader() {}
 
             public void initialize(InputSplit split, TaskAttemptContext context) {
-                totalRows = ((RangeInputSplit) split).rowCount;
+                count = ((RangeSplit) split).count;
             }
 
             public void close() {}
 
             public LongWritable getCurrentKey() {
-                return key;
+                return currentKey;
             }
 
             public NullWritable getCurrentValue() {
@@ -80,13 +81,13 @@ public class FuzzyGen {
             }
 
             public float getProgress() {
-                return 0.0f;
+                return (currentKey == null) ? 0.0f : 1.0f;
             }
 
             public boolean nextKeyValue() {
-                if (key == null) {
-                    key = new LongWritable();
-                    key.set(totalRows);
+                if (currentKey == null) {
+                    currentKey = new LongWritable();
+                    currentKey.set(count);
                     return true;
                 } else {
                     return false;
@@ -95,7 +96,7 @@ public class FuzzyGen {
         }
 
         public RecordReader<LongWritable, NullWritable> createRecordReader(InputSplit split, TaskAttemptContext context) {
-            return new RangeRecordReader();
+            return new RangeReader();
         }
 
         public List<InputSplit> getSplits(JobContext job) {
@@ -106,7 +107,7 @@ public class FuzzyGen {
             long rangeStart = 0;
             for (int i = 0; i < nMappers; ++i) {
                 long rangeEnd = (long) Math.ceil(nRecords * (double)(i + 1) / nMappers);
-                splits.add(new RangeInputSplit(rangeStart, rangeEnd - rangeStart));
+                splits.add(new RangeSplit(rangeStart, rangeEnd - rangeStart));
                 rangeStart = rangeEnd;
             }
             return splits;
@@ -125,7 +126,8 @@ public class FuzzyGen {
         job.setJobName(FuzzyGen.class.getSimpleName());
         job.setJarByClass(FuzzyGen.class);
 
-        job.setInputFormatClass(RangeInputFormat.class);
+        job.setInputFormatClass(RangeFormat.class);
+        job.setOutputFormatClass(TextOutputFormat.class);
         job.setOutputKeyClass(NullWritable.class);
         job.setOutputValueClass(BytesWritable.class);
 
