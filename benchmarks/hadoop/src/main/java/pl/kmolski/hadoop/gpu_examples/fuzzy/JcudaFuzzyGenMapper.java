@@ -19,8 +19,8 @@ import java.nio.ByteBuffer;
 import static jcuda.driver.JCudaDriver.*;
 import static jcuda.jcurand.JCurand.*;
 import static jcuda.jcurand.curandRngType.CURAND_RNG_PSEUDO_DEFAULT;
-import static pl.kmolski.hadoop.gpu_examples.fuzzy.FuzzyConstants.RECORD_BYTES;
-import static pl.kmolski.hadoop.gpu_examples.fuzzy.FuzzyConstants.RECORD_SIZE;
+import static pl.kmolski.hadoop.gpu_examples.fuzzy.FuzzyUtils.RECORD_BYTES;
+import static pl.kmolski.hadoop.gpu_examples.fuzzy.FuzzyUtils.RECORD_SIZE;
 
 public class JcudaFuzzyGenMapper extends Mapper<LongWritable, NullWritable, NullWritable, BytesWritable> {
 
