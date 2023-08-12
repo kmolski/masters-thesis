@@ -1,6 +1,7 @@
 package pl.kmolski.hadoop.gpu_examples.fuzzy;
 
 import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Mapper;
 
@@ -10,7 +11,7 @@ import java.util.Arrays;
 
 import static pl.kmolski.hadoop.gpu_examples.fuzzy.FuzzyUtils.*;
 
-public class CpuFuzzyComputeMapper extends Mapper<NullWritable, BytesWritable, NullWritable, BytesWritable> {
+public class CpuFuzzyComputeMapper extends Mapper<LongWritable, BytesWritable, NullWritable, BytesWritable> {
 
     public static float[] fuzzyUnion(float[] setA, float[] setB) {
         int n = Math.min(setA.length, setB.length);
@@ -30,7 +31,7 @@ public class CpuFuzzyComputeMapper extends Mapper<NullWritable, BytesWritable, N
     }
 
     @Override
-    public void map(NullWritable key, BytesWritable value, Mapper<NullWritable, BytesWritable, NullWritable, BytesWritable>.Context context) throws IOException, InterruptedException {
+    public void map(LongWritable ignored, BytesWritable value, Context context) throws IOException, InterruptedException {
 
         var bytes = value.getBytes();
         var buffer = ByteBuffer.wrap(bytes);
