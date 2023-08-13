@@ -16,7 +16,6 @@ public class CpuFuzzyGenMapper extends Mapper<LongWritable, NullWritable, NullWr
 
     @Override
     public void map(LongWritable key, NullWritable ignored, Context context) throws IOException, InterruptedException {
-
         var nRecords = key.get();
         var random = new Random();
 

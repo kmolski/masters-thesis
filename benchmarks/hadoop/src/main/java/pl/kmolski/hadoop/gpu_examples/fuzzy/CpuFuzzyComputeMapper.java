@@ -12,12 +12,12 @@ import static pl.kmolski.hadoop.gpu_examples.fuzzy.FuzzyUtils.*;
 
 public class CpuFuzzyComputeMapper extends Mapper<NullWritable, BytesWritable, NullWritable, BytesWritable> {
 
-    public static float[] fuzzyUnion(float[] setA, float[] setB) {
-        int n = Math.min(setA.length, setB.length);
+    public static float[] fuzzyUnion(float[] target, float[] source) {
+        int n = Math.min(target.length, source.length);
         for (int i = 0; i < n; i++) {
-            setA[i] = Math.max(setA[i], setB[i]);
+            target[i] = Math.max(target[i], source[i]);
         }
-        return setA;
+        return target;
     }
 
     public static float[] fuzzyComplement(float[] set) {
@@ -31,7 +31,6 @@ public class CpuFuzzyComputeMapper extends Mapper<NullWritable, BytesWritable, N
 
     @Override
     public void map(NullWritable ignored, BytesWritable value, Context context) throws IOException, InterruptedException {
-
         var bytes = value.getBytes();
         var buffer = ByteBuffer.wrap(bytes);
 

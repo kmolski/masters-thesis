@@ -12,7 +12,6 @@ public class AparapiQmcMapper extends Mapper<LongWritable, LongWritable, Boolean
 
     @Override
     public void map(LongWritable offset, LongWritable size, Context context) throws IOException, InterruptedException {
-
         System.setProperty("com.aparapi.logLevel", "FINE");
 
         int isize = (int) size.get();

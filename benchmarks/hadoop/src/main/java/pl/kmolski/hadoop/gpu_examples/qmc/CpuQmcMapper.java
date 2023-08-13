@@ -12,11 +12,6 @@ public class CpuQmcMapper extends Mapper<LongWritable, LongWritable, BooleanWrit
     private static final int[] MAX_DIGITS = {63, 40};
     private static final int DIMENSIONS = BASES.length;
 
-    /**
-     * 2-dimensional Halton sequence {H(i)},
-     * where H(i) is a 2-dimensional point and i >= 1 is the index.
-     * Halton sequence is used to generate sample points for Pi estimation.
-     */
     private double[] getRandomPoint(long index) {
         double[] point = new double[DIMENSIONS];
 
@@ -53,7 +48,6 @@ public class CpuQmcMapper extends Mapper<LongWritable, LongWritable, BooleanWrit
     }
 
     public void map(LongWritable offset, LongWritable size, Context context) throws IOException, InterruptedException {
-
         long numInside = 0L;
         long numOutside = 0L;
 
