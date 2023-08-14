@@ -61,15 +61,6 @@ public final class JcudaUtils {
         }
     }
 
-    public static byte[] toNullTerminatedByteArray(InputStream inStream) throws IOException {
-        Objects.requireNonNull(inStream);
-
-        var outStream = new ByteArrayOutputStream();
-        inStream.transferTo(outStream);
-        outStream.write(0);
-        return outStream.toByteArray();
-    }
-
     public static CUdeviceptr qmcGeneratePoints(long nPoints, long seqOffset) throws IOException {
         byte[] ptx = JcudaUtils.toNullTerminatedByteArray(JcudaUtils.class.getResourceAsStream("/CudaQmcKernel.ptx"));
 
@@ -90,7 +81,7 @@ public final class JcudaUtils {
         );
 
         cuLaunchKernel(
-                qmcKernel,
+                JcudaUtils.loadFunctionFromPtx("/CudaQmcKernel.ptx", "qmc_mapper"),
                 gridSizeX, 1, 1,
                 blockSizeX, 1, 1,
                 0, null,
@@ -103,13 +94,6 @@ public final class JcudaUtils {
 
     public static long sumShortArray(CUdeviceptr inputArray, long size) throws IOException {
         Objects.requireNonNull(inputArray);
-        byte[] ptx = JcudaUtils.toNullTerminatedByteArray(JcudaUtils.class.getResourceAsStream("/CudaReduction.ptx"));
-
-        var module = new CUmodule();
-        cuModuleLoadData(module, ptx);
-
-        var reduce = new CUfunction();
-        cuModuleGetFunction(reduce, module, "reduce_short");
 
         int blockSizeX = 256;
         int gridSizeX = (int) Math.ceil((double) size / blockSizeX);
@@ -122,7 +106,7 @@ public final class JcudaUtils {
         );
 
         cuLaunchKernel(
-                reduce,
+                JcudaUtils.loadFunctionFromPtx("/CudaReduction.ptx", "reduce_short"),
                 gridSizeX, 1, 1,
                 blockSizeX, 1, 1,
                 blockSizeX * Sizeof.SHORT, null,
@@ -134,5 +118,29 @@ public final class JcudaUtils {
         cuMemcpyDtoH(Pointer.to(sums), partialSums, (long) gridSizeX * Sizeof.SHORT);
         JcudaUtils.freeResources(partialSums);
         return IntStream.range(0, sums.length).map(i -> sums[i]).sum();
+    }
+
+    public static CUfunction loadFunctionFromPtx(String ptxPath, String funcName) throws IOException {
+        Objects.requireNonNull(ptxPath);
+        Objects.requireNonNull(funcName);
+
+        var resource = JcudaUtils.class.getResourceAsStream(ptxPath);
+        var ptx = JcudaUtils.toNullTerminatedByteArray(resource);
+
+        var module = new CUmodule();
+        cuModuleLoadData(module, ptx);
+
+        var func = new CUfunction();
+        cuModuleGetFunction(func, module, funcName);
+        return func;
+    }
+
+    private static byte[] toNullTerminatedByteArray(InputStream inStream) throws IOException {
+        Objects.requireNonNull(inStream);
+
+        var outStream = new ByteArrayOutputStream();
+        inStream.transferTo(outStream);
+        outStream.write(0);
+        return outStream.toByteArray();
     }
 }
