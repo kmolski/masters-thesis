@@ -62,14 +62,6 @@ public final class JcudaUtils {
     }
 
     public static CUdeviceptr qmcGeneratePoints(long nPoints, long seqOffset) throws IOException {
-        byte[] ptx = JcudaUtils.toNullTerminatedByteArray(JcudaUtils.class.getResourceAsStream("/CudaQmcKernel.ptx"));
-
-        var module = new CUmodule();
-        cuModuleLoadData(module, ptx);
-
-        var qmcKernel = new CUfunction();
-        cuModuleGetFunction(qmcKernel, module, "qmc_mapper");
-
         int blockSizeX = 256;
         int gridSizeX = (int) Math.ceil((double) nPoints / blockSizeX);
 
