@@ -1,9 +1,9 @@
 ---
 - hosts: jetson
 
-  pre_tasks:
-    - name: ensure up-to-date packages
-      ansible.builtin.import_tasks: includes/updated/tasks.yaml
+  #pre_tasks:
+  #  - name: ensure up-to-date packages
+  #    ansible.builtin.import_tasks: includes/updated/tasks.yaml
 
   roles:
     - role: roles/common-tools
@@ -19,4 +19,25 @@
     - name: disable graphical mode
       ansible.builtin.command: systemctl set-default multi-user.target
       when: "'multi-user' not in default_target.stdout"
+      become: true
+
+    - name: ensure CUDA kernel timeout script
+      ansible.builtin.copy:
+        dest: /usr/bin/disable-cuda-timeout
+        src: "etc/disable-cuda-timeout.sh"
+        mode: "0755"
+      become: true
+
+    - name: ensure CUDA kernel timeout service
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/disable-cuda-timeout.service
+        src: "etc/disable-cuda-timeout.service"
+        mode: "0755"
+      become: true
+
+    - name: ensure disabled CUDA kernel timeouts
+      ansible.builtin.service:
+        name: disable-cuda-timeout
+        enabled: yes
+        state: started
       become: true

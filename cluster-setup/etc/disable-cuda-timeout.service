@@ -1,0 +1,9 @@
+[Unit]
+Description=Disable CUDA kernel launch timeouts
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/disable-cuda-timeout
+
+[Install]
+WantedBy=multi-user.target
