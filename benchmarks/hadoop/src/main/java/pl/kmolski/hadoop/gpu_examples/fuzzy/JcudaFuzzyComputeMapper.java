@@ -6,8 +6,8 @@ import org.apache.hadoop.mapreduce.Mapper;
 import pl.kmolski.utils.HadoopJobUtils;
 import pl.kmolski.utils.JcudaUtils;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 public class JcudaFuzzyComputeMapper extends Mapper<NullWritable, BytesWritable, NullWritable, BytesWritable> {
 
@@ -17,14 +17,14 @@ public class JcudaFuzzyComputeMapper extends Mapper<NullWritable, BytesWritable,
 
         try {
             var ctx = JcudaUtils.createCudaContext();
-            var buffer = ByteBuffer.allocate((int) context.getInputSplit().getLength());
+            var bytes = new ByteArrayOutputStream();
             var nRecords = 0L;
             while (context.nextKeyValue()) {
-                buffer.put(context.getCurrentValue().getBytes());
+                bytes.writeBytes(context.getCurrentValue().getBytes());
                 ++nRecords;
             }
 
-            var output = JcudaUtils.fuzzyPerformOps(buffer.array(), buffer.position(), nRecords);
+            var output = JcudaUtils.fuzzyPerformOps(bytes.toByteArray(), nRecords);
             FuzzyUtils.forEachRecord(output, nRecords, buf -> HadoopJobUtils.writeByteRecord(context, buf));
             JcudaUtils.freeResources(output);
         } finally {

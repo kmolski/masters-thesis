@@ -16,6 +16,7 @@ import java.util.stream.IntStream;
 import static jcuda.driver.JCudaDriver.*;
 import static jcuda.jcurand.JCurand.*;
 import static jcuda.jcurand.curandRngType.CURAND_RNG_PSEUDO_DEFAULT;
+import static pl.kmolski.hadoop.gpu_examples.fuzzy.FuzzyUtils.RECORD_BYTES;
 
 public final class JcudaUtils {
 
@@ -112,12 +113,13 @@ public final class JcudaUtils {
         return IntStream.range(0, sums.length).map(i -> sums[i]).sum();
     }
 
-    public static CUdeviceptr fuzzyPerformOps(byte[] inputRecords, long nBytes, long nRecords) throws IOException {
+    public static CUdeviceptr fuzzyPerformOps(byte[] inputRecords, long nRecords) throws IOException {
         Objects.requireNonNull(inputRecords);
 
         int blockSizeX = 256;
         int gridSizeX = (int) Math.ceil((double) inputRecords.length / blockSizeX);
 
+        long nBytes = nRecords * RECORD_BYTES;
         var input = JcudaUtils.allocateDeviceMemory(nBytes);
         var output = JcudaUtils.allocateDeviceMemory(nBytes * 2);
         cuMemcpyHtoD(input, Pointer.to(inputRecords), nBytes);
