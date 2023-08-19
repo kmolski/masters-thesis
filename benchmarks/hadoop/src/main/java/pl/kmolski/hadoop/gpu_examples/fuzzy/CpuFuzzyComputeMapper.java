@@ -50,7 +50,7 @@ public class CpuFuzzyComputeMapper extends Mapper<NullWritable, BytesWritable, N
         for (int i = 0; i < sets.length; ++i) {
             for (int j = 0; j < sets.length; ++j) {
                 if (i != j) {
-                    results[i] = fuzzyUnion(results[i], sets[j]);
+                    results[i] = fuzzyUnion(results[i], results[j]);
                 }
             }
         }

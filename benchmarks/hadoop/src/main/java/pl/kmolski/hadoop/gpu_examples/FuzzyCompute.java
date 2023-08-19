@@ -11,6 +11,7 @@ import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import pl.kmolski.hadoop.gpu_examples.fuzzy.CpuFuzzyComputeMapper;
+import pl.kmolski.hadoop.gpu_examples.fuzzy.JcudaFuzzyComputeMapper;
 import pl.kmolski.utils.HadoopJobUtils;
 
 import java.util.Map;
@@ -20,7 +21,8 @@ public class FuzzyCompute {
 
     private static final Map<String, Class<? extends Mapper<?, ?, ?, ?>>> MAPPERS =
             Map.of(
-                    "cpu", CpuFuzzyComputeMapper.class
+                    "cpu", CpuFuzzyComputeMapper.class,
+                    "cuda", JcudaFuzzyComputeMapper.class
             );
 
     private static void performOperations(
