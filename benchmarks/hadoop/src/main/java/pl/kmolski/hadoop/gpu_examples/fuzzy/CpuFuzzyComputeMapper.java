@@ -8,13 +8,14 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-import static pl.kmolski.hadoop.gpu_examples.fuzzy.FuzzyUtils.*;
+import static pl.kmolski.hadoop.gpu_examples.fuzzy.FuzzyUtils.SETS_IN_RECORD;
+import static pl.kmolski.hadoop.gpu_examples.fuzzy.FuzzyUtils.SET_SIZE;
 
 public class CpuFuzzyComputeMapper extends Mapper<NullWritable, BytesWritable, NullWritable, BytesWritable> {
 
     public static float[] fuzzyUnion(float[] target, float[] source) {
         int n = Math.min(target.length, source.length);
-        for (int i = 0; i < n; i++) {
+        for (int i = 0; i < n; ++i) {
             target[i] = Math.max(target[i], source[i]);
         }
         return target;
@@ -23,7 +24,7 @@ public class CpuFuzzyComputeMapper extends Mapper<NullWritable, BytesWritable, N
     public static float[] fuzzyComplement(float[] set) {
         int n = set.length;
         float[] result = new float[n];
-        for (int i = 0; i < n; i++) {
+        for (int i = 0; i < n; ++i) {
             result[i] = 1.0f - set[i];
         }
         return result;
