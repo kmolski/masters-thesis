@@ -117,7 +117,7 @@ public final class JcudaUtils {
     public static CUdeviceptr fuzzyPerformOps(byte[] inputRecords, long nRecords) throws IOException {
         Objects.requireNonNull(inputRecords);
 
-        int blockSizeX = 256;
+        int blockSizeX = 1024 / SETS_IN_RECORD;
         int gridSizeX = (int) Math.ceil((double) inputRecords.length / blockSizeX);
 
         long nBytes = nRecords * RECORD_BYTES;
