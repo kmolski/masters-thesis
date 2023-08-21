@@ -1,6 +1,5 @@
 constexpr int SET_SIZE = 4;
 constexpr int SETS_IN_RECORD = 64;
-constexpr int RECORD_SIZE = SET_SIZE * SETS_IN_RECORD;
 
 using Set = float[SET_SIZE];
 using Record = Set[SETS_IN_RECORD];
