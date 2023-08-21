@@ -13,23 +13,6 @@ import static pl.kmolski.hadoop.gpu_examples.fuzzy.FuzzyUtils.SET_SIZE;
 
 public class CpuFuzzyComputeMapper extends Mapper<NullWritable, BytesWritable, NullWritable, BytesWritable> {
 
-    public static float[] fuzzyUnion(float[] target, float[] source) {
-        int n = Math.min(target.length, source.length);
-        for (int i = 0; i < n; ++i) {
-            target[i] = Math.max(target[i], source[i]);
-        }
-        return target;
-    }
-
-    public static float[] fuzzyComplement(float[] set) {
-        int n = set.length;
-        float[] result = new float[n];
-        for (int i = 0; i < n; ++i) {
-            result[i] = 1.0f - set[i];
-        }
-        return result;
-    }
-
     @Override
     public void map(NullWritable ignored, BytesWritable value, Context context) throws IOException, InterruptedException {
         var bytes = value.getBytes();
@@ -43,14 +26,14 @@ public class CpuFuzzyComputeMapper extends Mapper<NullWritable, BytesWritable, N
             }
         }
         for (int i = 0; i < SETS_IN_RECORD; ++i) {
-            sets[i + SETS_IN_RECORD] = fuzzyComplement(sets[i]);
+            sets[i + SETS_IN_RECORD] = FuzzyUtils.fuzzyComplement(sets[i]);
         }
 
         var results = Arrays.stream(sets).map(float[]::clone).toArray(float[][]::new);
         for (int i = 0; i < sets.length; ++i) {
             for (int j = 0; j < sets.length; ++j) {
                 if (i != j) {
-                    results[i] = fuzzyUnion(results[i], results[j]);
+                    results[i] = FuzzyUtils.fuzzyUnion(results[i], results[j]);
                 }
             }
         }

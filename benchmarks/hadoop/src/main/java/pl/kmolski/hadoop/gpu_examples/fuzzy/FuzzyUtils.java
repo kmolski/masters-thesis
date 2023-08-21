@@ -17,6 +17,23 @@ public final class FuzzyUtils {
 
     private FuzzyUtils() {}
 
+    public static float[] fuzzyUnion(float[] target, float[] source) {
+        int n = Math.min(target.length, source.length);
+        for (int i = 0; i < n; ++i) {
+            target[i] = Math.max(target[i], source[i]);
+        }
+        return target;
+    }
+
+    public static float[] fuzzyComplement(float[] set) {
+        int n = set.length;
+        float[] result = new float[n];
+        for (int i = 0; i < n; ++i) {
+            result[i] = 1.0f - set[i];
+        }
+        return result;
+    }
+
     public static void forEachRecord(CUdeviceptr inputRecords, long nRecords, Consumer<byte[]> consumer) {
         long byteCount = nRecords * RECORD_BYTES;
         var bytes = new byte[(int) byteCount];
