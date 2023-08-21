@@ -17,6 +17,7 @@ import static jcuda.driver.JCudaDriver.*;
 import static jcuda.jcurand.JCurand.*;
 import static jcuda.jcurand.curandRngType.CURAND_RNG_PSEUDO_DEFAULT;
 import static pl.kmolski.hadoop.gpu_examples.fuzzy.FuzzyUtils.RECORD_BYTES;
+import static pl.kmolski.hadoop.gpu_examples.fuzzy.FuzzyUtils.SETS_IN_RECORD;
 
 public final class JcudaUtils {
 
@@ -120,25 +121,25 @@ public final class JcudaUtils {
         int gridSizeX = (int) Math.ceil((double) inputRecords.length / blockSizeX);
 
         long nBytes = nRecords * RECORD_BYTES;
-        var input = JcudaUtils.allocateDeviceMemory(nBytes);
-        var output = JcudaUtils.allocateDeviceMemory(nBytes * 2);
-        cuMemcpyHtoD(input, Pointer.to(inputRecords), nBytes);
+        var records = JcudaUtils.allocateDeviceMemory(nBytes);
+        var temp = JcudaUtils.allocateDeviceMemory(nBytes * 2);
+        cuMemcpyHtoD(records, Pointer.to(inputRecords), nBytes);
 
         var kernelParams = Pointer.to(
-                Pointer.to(input),
-                Pointer.to(output),
-                Pointer.to(new long[]{nBytes})
+                Pointer.to(records),
+                Pointer.to(temp),
+                Pointer.to(new long[]{nRecords})
         );
         cuLaunchKernel(
                 JcudaUtils.loadFunctionFromPtx("/CudaFuzzyCompute.ptx", "fuzzy_compute"),
                 gridSizeX, 1, 1,
-                blockSizeX, 1, 1,
+                blockSizeX, SETS_IN_RECORD, 1,
                 0, null,
                 kernelParams, null
         );
         cuCtxSynchronize();
 
-        return output;
+        return records;
     }
 
     public static CUfunction loadFunctionFromPtx(String ptxPath, String funcName) throws IOException {
