@@ -11,8 +11,9 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>hadoop-benchmarks</module>
         <module>common</module>
+        <module>hadoop-benchmarks</module>
+        <module>spark-benchmarks</module>
     </modules>
 
     <properties>
