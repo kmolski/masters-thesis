@@ -3,6 +3,7 @@ package pl.kmolski.hadoop.gpu_examples.fuzzy;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Mapper;
+import pl.kmolski.utils.FuzzyUtils;
 
 import java.io.IOException;
 

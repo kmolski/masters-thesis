@@ -16,8 +16,6 @@ import java.util.stream.IntStream;
 import static jcuda.driver.JCudaDriver.*;
 import static jcuda.jcurand.JCurand.*;
 import static jcuda.jcurand.curandRngType.CURAND_RNG_PSEUDO_DEFAULT;
-import static pl.kmolski.hadoop.gpu_examples.fuzzy.FuzzyUtils.RECORD_BYTES;
-import static pl.kmolski.hadoop.gpu_examples.fuzzy.FuzzyUtils.SETS_IN_RECORD;
 
 public final class JcudaUtils {
 
@@ -117,10 +115,10 @@ public final class JcudaUtils {
     public static CUdeviceptr fuzzyPerformOps(byte[] inputRecords, long nRecords) throws IOException {
         Objects.requireNonNull(inputRecords);
 
-        int blockSizeX = 1024 / SETS_IN_RECORD;
+        int blockSizeX = 1024 / FuzzyUtils.SETS_IN_RECORD;
         int gridSizeX = (int) Math.ceil((double) inputRecords.length / blockSizeX);
 
-        long nBytes = nRecords * RECORD_BYTES;
+        long nBytes = nRecords * FuzzyUtils.RECORD_BYTES;
         var records = JcudaUtils.allocateDeviceMemory(nBytes);
         var temp = JcudaUtils.allocateDeviceMemory(nBytes * 2);
         cuMemcpyHtoD(records, Pointer.to(inputRecords), nBytes);
@@ -133,7 +131,7 @@ public final class JcudaUtils {
         cuLaunchKernel(
                 JcudaUtils.loadFunctionFromPtx("/CudaFuzzyCompute.ptx", "fuzzy_compute"),
                 gridSizeX, 1, 1,
-                blockSizeX, SETS_IN_RECORD, 1,
+                blockSizeX, FuzzyUtils.SETS_IN_RECORD, 1,
                 0, null,
                 kernelParams, null
         );

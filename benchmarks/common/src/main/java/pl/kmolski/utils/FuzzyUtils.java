@@ -1,4 +1,4 @@
-package pl.kmolski.hadoop.gpu_examples.fuzzy;
+package pl.kmolski.utils;
 
 import jcuda.Pointer;
 import jcuda.driver.CUdeviceptr;

@@ -6,13 +6,14 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Mapper;
 import pl.kmolski.utils.HadoopJobUtils;
+import pl.kmolski.utils.FuzzyUtils;
 import pl.kmolski.utils.JcudaUtils;
 
 import java.io.IOException;
 
 import static jcuda.driver.JCudaDriver.cuCtxSynchronize;
 import static jcuda.jcurand.JCurand.curandGenerateUniform;
-import static pl.kmolski.hadoop.gpu_examples.fuzzy.FuzzyUtils.RECORD_SIZE;
+import static pl.kmolski.utils.FuzzyUtils.RECORD_SIZE;
 
 public class JcudaFuzzyGenMapper extends Mapper<LongWritable, NullWritable, NullWritable, BytesWritable> {
 

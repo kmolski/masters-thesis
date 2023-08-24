@@ -5,6 +5,7 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Mapper;
 import pl.kmolski.utils.HadoopJobUtils;
+import pl.kmolski.utils.FuzzyUtils;
 
 import java.io.IOException;
 
