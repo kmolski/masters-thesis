@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package pl.kmolski.hadoop.gpu_examples;
+package pl.kmolski.examples;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -30,9 +30,9 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
-import pl.kmolski.hadoop.gpu_examples.qmc.AparapiQmcMapper;
-import pl.kmolski.hadoop.gpu_examples.qmc.CpuQmcMapper;
-import pl.kmolski.hadoop.gpu_examples.qmc.JcudaQmcMapper;
+import pl.kmolski.examples.qmc.AparapiQmcMapper;
+import pl.kmolski.examples.qmc.JcudaQmcMapper;
+import pl.kmolski.examples.qmc.CpuQmcMapper;
 import pl.kmolski.utils.HadoopJobUtils;
 
 import java.io.IOException;
@@ -76,9 +76,7 @@ public class PiEstimation {
             var outDir = new Path(conf.get(FileOutputFormat.OUTDIR));
             var outFile = new Path(outDir, "reduce-out");
             var fileSys = FileSystem.get(conf);
-            var writer = SequenceFile.createWriter(
-                    fileSys, conf, outFile, LongWritable.class, LongWritable.class, CompressionType.NONE
-            );
+            var writer = SequenceFile.createWriter(fileSys, conf, outFile, LongWritable.class, LongWritable.class, CompressionType.NONE);
             writer.append(new LongWritable(numInside), new LongWritable(numOutside));
             writer.close();
         }
@@ -123,11 +121,8 @@ public class PiEstimation {
                 var file = new Path(inDir, "part" + i);
                 var offset = new LongWritable(i * numPoints);
                 var size = new LongWritable(numPoints);
-                var writer = SequenceFile.createWriter(fs, conf, file, LongWritable.class, LongWritable.class, CompressionType.NONE);
-                try {
+                try (var writer = SequenceFile.createWriter(fs, conf, file, LongWritable.class, LongWritable.class, CompressionType.NONE)) {
                     writer.append(offset, size);
-                } finally {
-                    writer.close();
                 }
                 System.out.println("Wrote input for Map #" + i);
             }
@@ -137,17 +132,12 @@ public class PiEstimation {
             var inFile = new Path(outDir, "reduce-out");
             var numInside = new LongWritable();
             var numOutside = new LongWritable();
-            var reader = new SequenceFile.Reader(fs, inFile, conf);
-            try {
+            try (var reader = new SequenceFile.Reader(fs, inFile, conf)) {
                 reader.next(numInside, numOutside);
-            } finally {
-                reader.close();
             }
 
             var numTotal = BigDecimal.valueOf(numMaps).multiply(BigDecimal.valueOf(numPoints));
-            return BigDecimal.valueOf(4).setScale(20)
-                    .multiply(BigDecimal.valueOf(numInside.get()))
-                    .divide(numTotal, RoundingMode.HALF_UP);
+            return BigDecimal.valueOf(4).setScale(20).multiply(BigDecimal.valueOf(numInside.get())).divide(numTotal, RoundingMode.HALF_UP);
         } finally {
             fs.delete(tmpDir, true);
         }

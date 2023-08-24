@@ -1,4 +1,4 @@
-package pl.kmolski.hadoop.gpu_examples.qmc;
+package pl.kmolski.examples.qmc;
 
 import org.apache.hadoop.io.BooleanWritable;
 import org.apache.hadoop.io.LongWritable;

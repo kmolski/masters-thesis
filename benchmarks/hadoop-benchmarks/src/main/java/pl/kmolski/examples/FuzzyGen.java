@@ -1,4 +1,4 @@
-package pl.kmolski.hadoop.gpu_examples;
+package pl.kmolski.examples;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -6,8 +6,8 @@ import org.apache.hadoop.io.*;
 import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
-import pl.kmolski.hadoop.gpu_examples.fuzzy.CpuFuzzyGenMapper;
-import pl.kmolski.hadoop.gpu_examples.fuzzy.JcudaFuzzyGenMapper;
+import pl.kmolski.examples.fuzzy.CpuFuzzyGenMapper;
+import pl.kmolski.examples.fuzzy.JcudaFuzzyGenMapper;
 import pl.kmolski.utils.HadoopJobUtils;
 
 import java.io.DataInput;

@@ -1,4 +1,4 @@
-package pl.kmolski.spark.gpu_examples.qmc;
+package pl.kmolski.examples.qmc;
 
 import pl.kmolski.utils.QmcUtils;
 import scala.Tuple2;

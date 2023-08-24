@@ -1,4 +1,4 @@
-package pl.kmolski.hadoop.gpu_examples.fuzzy;
+package pl.kmolski.examples.fuzzy;
 
 import jcuda.Sizeof;
 import org.apache.hadoop.io.BytesWritable;
@@ -18,7 +18,7 @@ import static pl.kmolski.utils.FuzzyUtils.RECORD_SIZE;
 public class JcudaFuzzyGenMapper extends Mapper<LongWritable, NullWritable, NullWritable, BytesWritable> {
 
     @Override
-    public void map(LongWritable key, NullWritable ignored, Context context) throws IOException, InterruptedException {
+    public void map(LongWritable key, NullWritable ignored, Context context) {
         var ctx = JcudaUtils.createCudaContext();
         var nRecords = key.get();
         var floatCount = nRecords * RECORD_SIZE;

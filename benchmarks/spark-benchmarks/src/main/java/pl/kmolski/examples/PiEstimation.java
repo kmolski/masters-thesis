@@ -1,12 +1,11 @@
-package pl.kmolski.spark.gpu_examples;
+package pl.kmolski.examples;
 
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
-import org.apache.spark.sql.SparkSession;
-import pl.kmolski.spark.gpu_examples.qmc.AparapiQmcMapper;
-import pl.kmolski.spark.gpu_examples.qmc.CpuQmcFunction;
-import pl.kmolski.spark.gpu_examples.qmc.JcudaQmcMapper;
+import pl.kmolski.examples.qmc.AparapiQmcFunction;
+import pl.kmolski.examples.qmc.CpuQmcFunction;
+import pl.kmolski.examples.qmc.JcudaQmcFunction;
 import pl.kmolski.utils.SparkJobUtils;
 import scala.Tuple2;
 
@@ -22,24 +21,21 @@ public class PiEstimation {
     private static final Map<String, Function<Tuple2<Long, Long>, Long>> MAPPERS =
             Map.of(
                     "cpu", CpuQmcFunction::call,
-                    "opencl", AparapiQmcMapper::call,
-                    "cuda", JcudaQmcMapper::call
+                    "opencl", AparapiQmcFunction::call,
+                    "cuda", JcudaQmcFunction::call
             );
 
-    public static BigDecimal estimatePi(
+    private static BigDecimal estimatePi(
             int numMaps, long numPoints, JavaRDD<Tuple2<Long, Long>> dataSet, Function<Tuple2<Long, Long>, Long> mapper
     ) {
         Long numInside = SparkJobUtils.waitAndReport(() -> dataSet.map(mapper).reduce(Long::sum));
-
         var numTotal = BigDecimal.valueOf(numMaps).multiply(BigDecimal.valueOf(numPoints));
-        return BigDecimal.valueOf(4).setScale(20)
-                .multiply(BigDecimal.valueOf(numInside))
-                .divide(numTotal, RoundingMode.HALF_UP);
+        return BigDecimal.valueOf(4).setScale(20).multiply(BigDecimal.valueOf(numInside)).divide(numTotal, RoundingMode.HALF_UP);
     }
 
     public static void main(String[] args) {
         if (args.length != 3) {
-            System.err.println("Usage: " + PiEstimation.class.getName() + " <nMaps> <nSamples> <mapper>");
+            System.err.printf("Usage: %s <nMaps> <nSamples> <mapper>%n", PiEstimation.class.getName());
             System.exit(2);
         }
 
@@ -50,16 +46,16 @@ public class PiEstimation {
                 () -> new IllegalArgumentException("Unknown mapper: " + mapperName)
         );
 
-        System.out.println("Number of Maps  = " + nMaps);
-        System.out.println("Samples per Map = " + nSamples);
-        System.out.println("Mapper implementation = " + mapper);
+        System.out.printf("Number of Maps  = %s%n", nMaps);
+        System.out.printf("Samples per Map = %s%n", nSamples);
+        System.out.printf("Mapper implementation = %s%n", mapper);
 
         try (var ctx = new JavaSparkContext()) {
             var mapInputs = IntStream.range(0, nMaps)
                     .mapToObj(i -> Tuple2.apply((long) i, nSamples))
                     .collect(Collectors.toList());
             var dataSet = ctx.parallelize(mapInputs, nMaps);
-            System.out.println("Estimated value of Pi is " + estimatePi(nMaps, nSamples, dataSet, mapper));
+            System.out.printf("Estimated value of Pi is %s%n", estimatePi(nMaps, nSamples, dataSet, mapper));
         }
     }
 }
