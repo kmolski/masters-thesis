@@ -3,6 +3,7 @@ package pl.kmolski.hadoop.gpu_examples.qmc;
 import org.apache.hadoop.io.BooleanWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Mapper;
+import pl.kmolski.utils.QmcUtils;
 
 import java.io.IOException;
 
