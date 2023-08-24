@@ -15,10 +15,10 @@ public class CpuQmcMapper extends Mapper<LongWritable, LongWritable, BooleanWrit
 
         for (long i = 0; i < size.get(); ++i) {
             final double[] point = QmcUtils.getRandomPoint(offset.get() + i);
-            if (QmcUtils.isPointOutside(point)) {
-                numOutside++;
-            } else {
+            if (QmcUtils.isPointInside(point)) {
                 numInside++;
+            } else {
+                numOutside++;
             }
         }
 

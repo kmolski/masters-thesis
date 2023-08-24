@@ -43,10 +43,10 @@ public final class QmcUtils {
         return point;
     }
 
-    public static boolean isPointOutside(double[] point) {
+    public static boolean isPointInside(double[] point) {
         final double x = point[0] - 0.5;
         final double y = point[1] - 0.5;
 
-        return x * x + y * y > 0.25;
+        return x * x + y * y <= 0.25;
     }
 }

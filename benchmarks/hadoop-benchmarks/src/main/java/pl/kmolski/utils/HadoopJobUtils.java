@@ -8,7 +8,7 @@ import org.apache.hadoop.util.Time;
 
 import java.io.IOException;
 
-public class HadoopJobUtils {
+public final class HadoopJobUtils {
 
     private HadoopJobUtils() {}
 
