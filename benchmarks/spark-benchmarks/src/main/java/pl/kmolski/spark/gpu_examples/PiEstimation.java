@@ -25,7 +25,7 @@ public class PiEstimation {
                     "cuda", JcudaQmcFunction::call
             );
 
-    public static BigDecimal estimatePi(
+    private static BigDecimal estimatePi(
             int numMaps, long numPoints, JavaRDD<Tuple2<Long, Long>> dataSet, Function<Tuple2<Long, Long>, Long> mapper
     ) {
         Long numInside = SparkJobUtils.waitAndReport(() -> dataSet.map(mapper).reduce(Long::sum));
