@@ -54,11 +54,7 @@ public class PiEstimation {
         System.out.println("Samples per Map = " + nSamples);
         System.out.println("Mapper implementation = " + mapper);
 
-        var spark = SparkSession.builder()
-                .appName(PiEstimation.class.getName())
-                .getOrCreate();
-
-        try (var ctx = new JavaSparkContext(spark.sparkContext())) {
+        try (var ctx = new JavaSparkContext()) {
             var mapInputs = IntStream.range(0, nMaps)
                     .mapToObj(i -> Tuple2.apply((long) i, nSamples))
                     .collect(Collectors.toList());
