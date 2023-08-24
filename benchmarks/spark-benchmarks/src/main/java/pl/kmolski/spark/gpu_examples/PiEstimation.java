@@ -61,6 +61,5 @@ public class PiEstimation {
             var dataSet = ctx.parallelize(mapInputs, nMaps);
             System.out.println("Estimated value of Pi is " + estimatePi(nMaps, nSamples, dataSet, mapper));
         }
-        spark.stop();
     }
 }
