@@ -1,10 +1,10 @@
-package pl.kmolski.spark.gpu_examples;
+package pl.kmolski.examples;
 
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.FlatMapFunction;
-import pl.kmolski.spark.gpu_examples.fuzzy.CpuFuzzyGenFunction;
-import pl.kmolski.spark.gpu_examples.fuzzy.JcudaFuzzyGenFunction;
+import pl.kmolski.examples.fuzzy.CpuFuzzyGenFunction;
+import pl.kmolski.examples.fuzzy.JcudaFuzzyGenFunction;
 import pl.kmolski.utils.SparkJobUtils;
 
 import java.util.ArrayList;

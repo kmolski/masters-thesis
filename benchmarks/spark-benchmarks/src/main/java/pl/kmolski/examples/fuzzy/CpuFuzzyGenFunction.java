@@ -1,4 +1,4 @@
-package pl.kmolski.spark.gpu_examples.fuzzy;
+package pl.kmolski.examples.fuzzy;
 
 import pl.kmolski.utils.FuzzyUtils;
 

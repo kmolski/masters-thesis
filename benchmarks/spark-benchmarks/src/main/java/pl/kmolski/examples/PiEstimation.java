@@ -1,11 +1,11 @@
-package pl.kmolski.spark.gpu_examples;
+package pl.kmolski.examples;
 
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
-import pl.kmolski.spark.gpu_examples.qmc.AparapiQmcFunction;
-import pl.kmolski.spark.gpu_examples.qmc.CpuQmcFunction;
-import pl.kmolski.spark.gpu_examples.qmc.JcudaQmcFunction;
+import pl.kmolski.examples.qmc.AparapiQmcFunction;
+import pl.kmolski.examples.qmc.CpuQmcFunction;
+import pl.kmolski.examples.qmc.JcudaQmcFunction;
 import pl.kmolski.utils.SparkJobUtils;
 import scala.Tuple2;
 

@@ -1,4 +1,4 @@
-package pl.kmolski.hadoop.gpu_examples.fuzzy;
+package pl.kmolski.examples.fuzzy;
 
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.NullWritable;
