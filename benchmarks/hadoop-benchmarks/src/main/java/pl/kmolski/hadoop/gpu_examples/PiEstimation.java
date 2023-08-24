@@ -145,9 +145,7 @@ public class PiEstimation {
             }
 
             var numTotal = BigDecimal.valueOf(numMaps).multiply(BigDecimal.valueOf(numPoints));
-            return BigDecimal.valueOf(4).setScale(20)
-                    .multiply(BigDecimal.valueOf(numInside.get()))
-                    .divide(numTotal, RoundingMode.HALF_UP);
+            return BigDecimal.valueOf(4).setScale(20).multiply(BigDecimal.valueOf(numInside.get())).divide(numTotal, RoundingMode.HALF_UP);
         } finally {
             fs.delete(tmpDir, true);
         }
