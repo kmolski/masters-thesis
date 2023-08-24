@@ -100,8 +100,8 @@ public class FuzzyGen {
         }
 
         public List<InputSplit> getSplits(JobContext job) {
-            var nRecords = getNumberOfRows(job);
-            var nMappers = job.getConfiguration().getInt(MRJobConfig.NUM_MAPS, 1);
+            long nRecords = getNumberOfRows(job);
+            int nMappers = job.getConfiguration().getInt(MRJobConfig.NUM_MAPS, 1);
 
             var splits = new ArrayList<InputSplit>();
             long rangeStart = 0;
@@ -150,7 +150,7 @@ public class FuzzyGen {
         var mapper = Optional.ofNullable(MAPPERS.get(mapperName)).orElseThrow(
                 () -> new IllegalArgumentException("Unknown mapper: " + mapperName)
         );
-        var nRecords = Long.parseLong(args[1]);
+        long nRecords = Long.parseLong(args[1]);
         var outputDir = args[2];
 
         System.out.printf("Number of records     = %s%n", nRecords);
