@@ -3,6 +3,35 @@
   tags: spark_setup
 
   tasks:
+    - name: check if Scala directory exists
+      ansible.builtin.stat:
+        path: "/usr/local/{{ scala_name }}"
+      register: scala_dir
+
+    - name: download Scala tarball
+      ansible.builtin.get_url:
+        url: "{{ scala_tarball }}"
+        dest: /tmp/scala.tgz
+      when: not scala_dir.stat.exists
+
+    - name: install Scala tarball
+      ansible.builtin.unarchive:
+        src: /tmp/scala.tgz
+        dest: /usr/local
+        owner: "{{ ansible_user }}"
+        remote_src: true
+      when: not scala_dir.stat.exists
+      become: true
+
+    - name: link Scala folder
+      ansible.builtin.file:
+        src: "/usr/local/{{ scala_name }}"
+        dest: /usr/local/scala
+        owner: "{{ ansible_user }}"
+        group: root
+        state: link
+      become: true
+
     - name: check if Spark directory exists
       ansible.builtin.stat:
         path: "/usr/local/{{ spark_name }}"
@@ -32,7 +61,7 @@
         state: link
       become: true
 
-    - name: include Spark paths in global environment
+    - name: include paths in global environment
       ansible.builtin.copy:
         dest: /etc/environment
         src: "etc/environment"

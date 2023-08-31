@@ -1,4 +1,5 @@
-PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/usr/local/hadoop/bin:/usr/local/spark/bin"
+PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/usr/local/hadoop/bin:/usr/local/spark/bin:/usr/local/scala/bin"
+SCALA_HOME="/usr/local/scala"
 HADOOP_HOME="/usr/local/hadoop"
 HADOOP_COMMON_HOME="/usr/local/hadoop"
 HADOOP_CONF_DIR="/usr/local/hadoop/etc/hadoop"
