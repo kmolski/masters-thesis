@@ -16,54 +16,11 @@
 %                                        %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-%
-% Projekt LaTeXowy zapewnia odpowiednie formatowanie pracy,
-% zgodnie z wymaganiami Systemu zapewniania jakości kształcenia.
-% Proszę nie zmieniać ustawień formatowania (np. fontu,
-% marginesów, wytłuszczeń, kursywy itd. ).
-%
-% Projekt można kompilować na kilka sposobów.
-%
-% 1. kompilacja pdfLaTeX
-%
 % pdflatex main
 % bibtex   main
 % pdflatex main
 % pdflatex main
 %
-%
-% 2. kompilacja XeLaTeX
-%
-% Kompilatacja przy użyciu XeLaTeXa różni się tym, że na stronie
-% tytułowej używany jest font Calibri. Wymaga to jego uprzedniego
-% zainstalowania.
-%
-% xelatex main
-% bibtex  main
-% xelatex main
-% xelatex main
-%
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% W przypadku pytań, uwag, proszę pisać na adres:   %
-%      krzysztof.siminski(małpa)polsl.pl            %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-% Chcemy ulepszać szablony LaTeXowe prac dyplomowych.
-% Wypełniając ankietę spod poniższego adresu pomogą
-% Państwo nam to zrobić. Ankieta jest całkowicie
-% anonimowa. Dziękujemy!
-
-
-% https://docs.google.com/forms/d/e/1FAIpQLScyllVxNKzKFHfILDfdbwC-jvT8YL0RSTFs-s27UGw9CKn-fQ/viewform?usp=sf_link
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                                             %
-% PERSONALIZACJA PRACY – DANE PRACY           %
-%                                             %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newcommand{\FirstNameAuthor}{Krzysztof}
 \newcommand{\SurnameAuthor}{Molski}
 \newcommand{\IdAuthor}{282711}
@@ -71,7 +28,6 @@
 \newcommand{\FirstNameCoauthor}{}
 \newcommand{\SurnameCoauthor}{}
 \newcommand{\IdCoauthor}{}
-%%%%%%%%%%
 
 \newcommand{\Supervisor}{dr hab. inż. Dariusz Mrozek}
 \newcommand{\Title}{Budowa klastra Big Data w środowisku minikomputerów jednopłytkowych z akceleracją GPU}
@@ -82,37 +38,25 @@
 
 \newcommand{\Consultant}{}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                                             %
-% KONIEC PERSONALIZACJI PRACY                 %
-%                                             %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\input{config/settings.tex} % Proszę nie modyfikować pliku settings.tex
-
-\input{config/my-settings.tex} % Tutaj proszę umieścić swoje pakiety, makra, ustawienia itd.
+\documentclass[a4paper,twoside,12pt]{book}
+\input{config/settings.tex}
+\input{config/my-settings.tex}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 \begin{document}
-%\kslistofremarks
 
 \frontmatter
-\input{config/titlepage.tex}  % Proszę nie modyfikować pliku titlepage.tex
+\input{config/titlepage.tex}
 
 \cleardoublepage
 
 \rmfamily\normalfont
 \pagestyle{empty}
 
-
-%%% No to zaczynamy pisać pracę :-) %%%%
 
 \input{chapters/00.tex} % informacje redakcyjne
 
@@ -148,14 +92,14 @@
 
 \begin{appendices}
 
-\input{chapters/06.tex} % dokumentacja techniczna
-\input{chapters/07.tex} % Spis skrótów i symboli
-\input{chapters/08.tex} % Lista dodatkowych plików
+    \input{chapters/06.tex} % dokumentacja techniczna
+    \input{chapters/07.tex} % Spis skrótów i symboli
+    \input{chapters/08.tex} % Lista dodatkowych plików
 
-\listoffigures
-\addcontentsline{toc}{chapter}{Spis rysunków}
-\listoftables
-\addcontentsline{toc}{chapter}{Spis tabel}
+    \listoffigures
+    \addcontentsline{toc}{chapter}{Spis rysunków}
+    \listoftables
+    \addcontentsline{toc}{chapter}{Spis tabel}
 
 \end{appendices}
 
