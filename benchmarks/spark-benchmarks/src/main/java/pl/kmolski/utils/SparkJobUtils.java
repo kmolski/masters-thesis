@@ -28,11 +28,7 @@ public final class SparkJobUtils {
         });
     }
 
-    public static int getParallelism(JavaSparkContext ctx, String mapperName) {
-        if ("cpu".equals(mapperName)) {
-            return ctx.defaultParallelism();
-        } else {
-            return ctx.defaultParallelism() / 4; // TODO: get the real GPU count
-        }
+    public static int getParallelism(JavaSparkContext ctx) {
+        return ctx.defaultParallelism();
     }
 }
