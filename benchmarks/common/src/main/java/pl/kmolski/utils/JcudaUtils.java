@@ -15,7 +15,7 @@ import java.util.stream.IntStream;
 
 import static jcuda.driver.JCudaDriver.*;
 import static jcuda.jcurand.JCurand.*;
-import static jcuda.jcurand.curandRngType.CURAND_RNG_PSEUDO_DEFAULT;
+import static jcuda.jcurand.curandRngType.*;
 
 public final class JcudaUtils {
 
@@ -42,7 +42,7 @@ public final class JcudaUtils {
 
     public static curandGenerator createRandomGenerator() {
         var generator = new curandGenerator();
-        curandCreateGenerator(generator, CURAND_RNG_PSEUDO_DEFAULT);
+        curandCreateGenerator(generator, CURAND_RNG_PSEUDO_PHILOX4_32_10);
         curandSetPseudoRandomGeneratorSeed(generator, System.currentTimeMillis());
         return generator;
     }
