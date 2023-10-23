@@ -42,11 +42,7 @@ public final class JcudaUtils {
 
     public static curandGenerator createRandomGenerator() {
         var generator = new curandGenerator();
-        curandCreateGenerator(generator, CURAND_RNG_PSEUDO_XORWOW);
-        //curandCreateGenerator(generator, CURAND_RNG_PSEUDO_MT19937);
-        //curandCreateGenerator(generator, CURAND_RNG_PSEUDO_MRG32K3A);
-        //curandCreateGenerator(generator, CURAND_RNG_PSEUDO_MTGP32);
-        //curandCreateGenerator(generator, CURAND_RNG_PSEUDO_PHILOX4_32_10);
+        curandCreateGenerator(generator, CURAND_RNG_PSEUDO_PHILOX4_32_10);
         curandSetPseudoRandomGeneratorSeed(generator, System.currentTimeMillis());
         return generator;
     }
