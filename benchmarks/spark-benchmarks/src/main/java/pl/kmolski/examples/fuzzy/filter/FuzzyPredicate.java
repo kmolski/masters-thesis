@@ -32,9 +32,9 @@ public class FuzzyPredicate implements Serializable {
         } else if (value >= this.b && value <= this.c) {
             return 1;  // inside plateau
         } else if (value < this.b) { // (val > a && val < b)
-            return (value - a) / (b - a); // left triangle
+            return (value - this.a) / (this.b - this.a); // left triangle
         } else {  // (val > c && val < d)
-            return (d - value) / (d - c);  // right triangle
+            return (this.d - value) / (this.d - this.c);  // right triangle
         }
     }
 }
