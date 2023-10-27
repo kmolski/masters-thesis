@@ -46,9 +46,9 @@ public class PiEstimation {
                 () -> new IllegalArgumentException("Unknown mapper: " + mapperName)
         );
 
-        System.out.printf("Number of Maps  = %s%n", nMaps);
-        System.out.printf("Samples per Map = %s%n", nSamples);
-        System.out.printf("Mapper implementation = %s%n", mapper);
+        System.out.printf("Number of Maps        = %s%n", nMaps);
+        System.out.printf("Samples per Map       = %s%n", nSamples);
+        System.out.printf("Mapper implementation = %s%n", mapperName);
 
         try (var ctx = new JavaSparkContext()) {
             var mapInputs = IntStream.range(0, nMaps)

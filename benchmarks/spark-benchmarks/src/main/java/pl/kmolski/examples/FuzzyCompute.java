@@ -38,7 +38,7 @@ public class FuzzyCompute {
         var inputDir = args[1];
         var outputDir = args[2];
 
-        System.out.printf("Mapper implementation = %s%n", mapper);
+        System.out.printf("Mapper implementation = %s%n", mapperName);
 
         try (var ctx = new JavaSparkContext()) {
             var mapInputs = ctx.binaryRecords(inputDir, RECORD_BYTES);
