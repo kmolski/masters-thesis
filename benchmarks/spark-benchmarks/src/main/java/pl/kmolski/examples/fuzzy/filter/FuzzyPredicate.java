@@ -21,8 +21,12 @@ public class FuzzyPredicate implements Serializable {
         this.column = parts[4];
     }
 
+    public float getValue(Row row) {
+        return Float.parseFloat(row.getString(row.fieldIndex(this.column)));
+    }
+
     public float getMembership(Row row) {
-        float value = row.getFloat(row.fieldIndex(this.column));
+        float value = getValue(row);
         if (value <= this.a || value >= this.d) {
             return 0;  // out of range
         } else if (value >= this.b && value <= this.c) {
