@@ -23,7 +23,7 @@ public class FuzzyFilter {
             );
 
     public static void main(String[] args) {
-        if (args.length != 3) {
+        if (args.length < 4) {
             System.err.printf("Usage: %s <mapper> <inputFile> <outputFile> <threshold> [filters...]%n", FuzzyFilter.class.getName());
             System.exit(2);
         }
@@ -44,7 +44,6 @@ public class FuzzyFilter {
             Dataset<Row> input = ctx.read().option("header", "true").csv(inputFile);
 //            inputDf.rdd().glom().filter(r -> r).flatMap(mapper, new AgnosticEncoders.RowEncoder());
             Dataset<Row> filteredDf = filter.apply(input);
-            filteredDf.show();
             filteredDf.write().option("header", "true").csv(outputFile);
         }
     }
