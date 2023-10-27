@@ -11,8 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static pl.kmolski.utils.FuzzyUtils.RECORD_BYTES;
-
 public class FuzzyCompute {
 
     private static final Map<String, FlatMapFunction<List<byte[]>, byte[]>> MAPPERS =
@@ -41,7 +39,7 @@ public class FuzzyCompute {
         System.out.printf("Mapper implementation = %s%n", mapper);
 
         try (var ctx = new JavaSparkContext()) {
-            var mapInputs = ctx.binaryRecords(inputDir, RECORD_BYTES);
+            var mapInputs = ctx.<byte[]>objectFile(inputDir);
             performOperations(mapInputs, outputDir, mapper);
         }
     }
