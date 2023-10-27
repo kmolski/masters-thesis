@@ -11,7 +11,7 @@ public class FuzzyPredicate {
     private final String column;
 
     public FuzzyPredicate(String expr) {
-        String[] parts = expr.split(",");
+        String[] parts = expr.split(",", 5);
         this.a = Float.parseFloat(parts[0]);
         this.b = Float.parseFloat(parts[1]);
         this.c = Float.parseFloat(parts[2]);
