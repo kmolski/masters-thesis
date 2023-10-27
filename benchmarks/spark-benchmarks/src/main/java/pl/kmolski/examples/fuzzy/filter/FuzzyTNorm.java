@@ -3,9 +3,10 @@ package pl.kmolski.examples.fuzzy.filter;
 import org.apache.spark.api.java.function.FilterFunction;
 import org.apache.spark.sql.Row;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class FuzzyTNorm implements FilterFunction<Row> {
+public class FuzzyTNorm implements FilterFunction<Row>, Serializable {
 
     private final float threshold;
     private final List<FuzzyPredicate> membershipList;

@@ -2,7 +2,9 @@ package pl.kmolski.examples.fuzzy.filter;
 
 import org.apache.spark.sql.Row;
 
-public class FuzzyPredicate {
+import java.io.Serializable;
+
+public class FuzzyPredicate implements Serializable {
 
     private final float a;
     private final float b;
