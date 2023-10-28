@@ -140,6 +140,45 @@ public final class JcudaUtils {
         return records;
     }
 
+    public static CUdeviceptr fuzzyFilterRows(
+            float[] rowValues, float[] membershipFnParams, float threshold, int nRows, int nFilters
+    ) throws IOException {
+        Objects.requireNonNull(rowValues);
+        Objects.requireNonNull(membershipFnParams);
+
+        long rowValueBytes = (long) rowValues.length * Sizeof.FLOAT;
+        var rowValuesPtr = JcudaUtils.allocateDeviceMemory(rowValueBytes);
+        cuMemcpyHtoD(rowValuesPtr, Pointer.to(rowValues), rowValueBytes);
+
+        long membershipFnParamsBytes = (long) membershipFnParams.length * Sizeof.FLOAT;
+        var membershipFnParamsPtr = JcudaUtils.allocateDeviceMemory(membershipFnParamsBytes);
+        cuMemcpyHtoD(membershipFnParamsPtr, Pointer.to(membershipFnParams), membershipFnParamsBytes);
+
+        int blockSizeX = 256;
+        int gridSizeX = (int) Math.ceil((double) nRows / blockSizeX);
+        var member = JcudaUtils.allocateDeviceMemory((long) nRows * Sizeof.SHORT);
+        var kernelParams = Pointer.to(
+                Pointer.to(member),
+                Pointer.to(rowValuesPtr),
+                Pointer.to(membershipFnParamsPtr),
+                Pointer.to(new float[]{threshold}),
+                Pointer.to(new int[]{nRows}),
+                Pointer.to(new int[]{nFilters})
+        );
+
+        cuLaunchKernel(
+                JcudaUtils.loadFunctionFromPtx("/CudaFuzzyFilter.ptx", "fuzzy_filter"),
+                gridSizeX, 1, 1,
+                blockSizeX, 1, 1,
+                0, null,
+                kernelParams, null
+        );
+        cuCtxSynchronize();
+
+        JcudaUtils.freeResources(rowValuesPtr, membershipFnParamsPtr);
+        return member;
+    }
+
     public static CUfunction loadFunctionFromPtx(String ptxPath, String funcName) throws IOException {
         Objects.requireNonNull(ptxPath);
         Objects.requireNonNull(funcName);

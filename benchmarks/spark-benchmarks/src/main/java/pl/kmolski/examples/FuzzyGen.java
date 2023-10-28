@@ -49,7 +49,7 @@ public class FuzzyGen {
         var outputDir = args[2];
 
         System.out.printf("Number of records     = %s%n", nRecords);
-        System.out.printf("Mapper implementation = %s%n", mapper);
+        System.out.printf("Mapper implementation = %s%n", mapperName);
 
         try (var ctx = new JavaSparkContext()) {
             int nMaps = SparkJobUtils.getParallelism(ctx);
