@@ -21,6 +21,26 @@ public class FuzzyPredicate implements Serializable {
         this.column = parts[4];
     }
 
+    public float getA() {
+        return a;
+    }
+
+    public float getB() {
+        return b;
+    }
+
+    public float getC() {
+        return c;
+    }
+
+    public float getD() {
+        return d;
+    }
+
+    public String getColumn() {
+        return column;
+    }
+
     public float getValue(Row row) {
         return Float.parseFloat(row.getString(row.fieldIndex(this.column)));
     }

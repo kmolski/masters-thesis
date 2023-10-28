@@ -1,9 +1,8 @@
 package pl.kmolski.examples;
 
-import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import pl.kmolski.examples.fuzzy.CpuFuzzyFilterFunction;
+import pl.kmolski.examples.fuzzy.JcudaFuzzyFilterFunction;
 import pl.kmolski.examples.fuzzy.filter.FuzzyPredicate;
 import pl.kmolski.examples.fuzzy.filter.FuzzyTNorm;
 import pl.kmolski.examples.fuzzy.filter.FuzzyTNormFilter;
@@ -18,9 +17,16 @@ public class FuzzyFilter {
 
     private static final Map<String, Function<FuzzyTNorm, FuzzyTNormFilter>> MAPPERS =
             Map.of(
-                    "cpu", CpuFuzzyFilterFunction::new
-                    //"cuda", JcudaFuzzyFilterFunction::build
+                    "cpu", CpuFuzzyFilterFunction::new,
+                    "cuda", JcudaFuzzyFilterFunction::new
             );
+
+    private static void performFilter(SparkSession ctx, FuzzyTNormFilter filter, String inputFile, String outputFile) {
+        var input = ctx.read().option("header", "true").csv(inputFile);
+        var filtered = filter.apply(input);
+        System.out.printf("Filtered records count is %s%n", filtered.count());
+        filtered.write().option("header", "true").csv(outputFile);
+    }
 
     public static void main(String[] args) {
         if (args.length < 4) {
@@ -41,10 +47,7 @@ public class FuzzyFilter {
         System.out.printf("Mapper implementation = %s%n", mapperName);
 
         try (var ctx = SparkSession.builder().appName("FuzzyFilter").getOrCreate()) {
-            Dataset<Row> input = ctx.read().option("header", "true").csv(inputFile);
-//            inputDf.rdd().glom().filter(r -> r).flatMap(mapper, new AgnosticEncoders.RowEncoder());
-            Dataset<Row> filteredDf = filter.apply(input);
-            filteredDf.write().option("header", "true").csv(outputFile);
+            performFilter(ctx, filter, inputFile, outputFile);
         }
     }
 }

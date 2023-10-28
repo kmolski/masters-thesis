@@ -29,6 +29,6 @@ public class FuzzyTNorm implements FilterFunction<Row>, Serializable {
         return threshold <= membershipList.stream()
                 .mapToDouble(p -> (double) p.getMembership(value))
                 .min()
-                .orElse(0.0);
+                .orElse(1.0);
     }
 }
