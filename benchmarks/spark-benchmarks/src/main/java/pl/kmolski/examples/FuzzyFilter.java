@@ -6,6 +6,7 @@ import pl.kmolski.examples.fuzzy.JcudaFuzzyFilterFunction;
 import pl.kmolski.examples.fuzzy.filter.FuzzyPredicate;
 import pl.kmolski.examples.fuzzy.filter.FuzzyTNorm;
 import pl.kmolski.examples.fuzzy.filter.FuzzyTNormFilter;
+import pl.kmolski.utils.SparkJobUtils;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -21,11 +22,13 @@ public class FuzzyFilter {
                     "cuda", JcudaFuzzyFilterFunction::new
             );
 
-    private static void performFilter(SparkSession ctx, FuzzyTNormFilter filter, String inputFile, String outputFile) {
-        var input = ctx.read().option("header", "true").csv(inputFile);
-        var filtered = filter.apply(input);
-        System.out.printf("Filtered records count is %s%n", filtered.count());
-        filtered.write().option("header", "true").csv(outputFile);
+    private static long performFilter(SparkSession ctx, FuzzyTNormFilter filter, String inputFile, String outputFile) {
+        return SparkJobUtils.waitAndReport(() -> {
+            var input = ctx.read().option("header", "true").csv(inputFile);
+            var filtered = filter.apply(input);
+            filtered.write().option("header", "true").csv(outputFile);
+            return filtered.count();
+        });
     }
 
     public static void main(String[] args) {
@@ -47,7 +50,7 @@ public class FuzzyFilter {
         System.out.printf("Mapper implementation = %s%n", mapperName);
 
         try (var ctx = SparkSession.builder().appName("FuzzyFilter").getOrCreate()) {
-            performFilter(ctx, filter, inputFile, outputFile);
+            System.out.printf("Filtered records count is %s%n", performFilter(ctx, filter, inputFile, outputFile));
         }
     }
 }

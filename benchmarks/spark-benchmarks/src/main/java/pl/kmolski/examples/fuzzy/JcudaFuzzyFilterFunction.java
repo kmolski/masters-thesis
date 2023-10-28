@@ -2,7 +2,6 @@ package pl.kmolski.examples.fuzzy;
 
 import jcuda.Pointer;
 import jcuda.Sizeof;
-import org.apache.spark.api.java.function.FilterFunction;
 import org.apache.spark.api.java.function.MapPartitionsFunction;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
@@ -43,8 +42,7 @@ public class JcudaFuzzyFilterFunction implements FuzzyTNormFilter, MapPartitions
 
     @Override
     public Dataset<Row> apply(Dataset<Row> dataset) {
-        return dataset.mapPartitions(this, dataset.encoder())
-                .filter((FilterFunction<Row>) r -> r.getShort(r.fieldIndex("membership")) == 1);
+        return dataset.mapPartitions(this, dataset.encoder());
     }
 
     @Override
