@@ -42,8 +42,7 @@ public class JcudaFuzzyFilterFunction implements FuzzyTNormFilter, MapPartitions
 
     @Override
     public Dataset<Row> apply(Dataset<Row> dataset) {
-        int nodes = dataset.sqlContext().sparkContext().defaultParallelism() / Runtime.getRuntime().availableProcessors();
-        return dataset.coalesce(nodes).mapPartitions(this, dataset.encoder());
+        return dataset.mapPartitions(this, dataset.encoder());
     }
 
     @Override

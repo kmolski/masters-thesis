@@ -9,6 +9,7 @@ import pl.kmolski.examples.fuzzy.filter.FuzzyTNormFilter;
 import pl.kmolski.utils.SparkJobUtils;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -31,6 +32,14 @@ public class FuzzyFilter {
         });
     }
 
+    private static Map<String, Object> getConfig(String mapperName) {
+        if ("cuda".equals(mapperName)) {
+            return Map.of("spark.task.cpus", Runtime.getRuntime().availableProcessors());
+        } else {
+            return Collections.emptyMap();
+        }
+    }
+
     public static void main(String[] args) {
         if (args.length < 4) {
             System.err.printf("Usage: %s <mapper> <inputFile> <outputFile> <threshold> [filters...]%n", FuzzyFilter.class.getName());
@@ -49,7 +58,7 @@ public class FuzzyFilter {
 
         System.out.printf("Mapper implementation = %s%n", mapperName);
 
-        try (var ctx = SparkSession.builder().appName("FuzzyFilter").getOrCreate()) {
+        try (var ctx = SparkSession.builder().appName("FuzzyFilter").config(getConfig(mapperName)).getOrCreate()) {
             System.out.printf("Filtered records count is %s%n", performFilter(ctx, filter, inputFile, outputFile));
         }
     }
