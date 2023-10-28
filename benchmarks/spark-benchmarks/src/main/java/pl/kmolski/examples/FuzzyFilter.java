@@ -32,12 +32,8 @@ public class FuzzyFilter {
         });
     }
 
-    private static Map<String, Object> getConfig(String mapperName) {
-        if ("cuda".equals(mapperName)) {
-            return Map.of("spark.task.cpus", Runtime.getRuntime().availableProcessors());
-        } else {
-            return Collections.emptyMap();
-        }
+    private static Map<String, Object> getConfig() {
+        return Map.of("spark.executor.memory", "2G");
     }
 
     public static void main(String[] args) {
@@ -58,7 +54,7 @@ public class FuzzyFilter {
 
         System.out.printf("Mapper implementation = %s%n", mapperName);
 
-        try (var ctx = SparkSession.builder().appName("FuzzyFilter").config(getConfig(mapperName)).getOrCreate()) {
+        try (var ctx = SparkSession.builder().appName("FuzzyFilter").config(getConfig()).getOrCreate()) {
             System.out.printf("Filtered records count is %s%n", performFilter(ctx, filter, inputFile, outputFile));
         }
     }

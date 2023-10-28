@@ -48,16 +48,18 @@ public class JcudaFuzzyFilterFunction implements FuzzyTNormFilter, MapPartitions
     @Override
     public Iterator<Row> call(Iterator<Row> input) throws Exception {
         var ctx = JcudaUtils.createCudaContext();
-        var result = new ArrayList<Row>();
-        input.forEachRemaining(result::add);
+        var rows = new ArrayList<Row>();
+        input.forEachRemaining(rows::add);
 
-        int nRows = result.size();
-        var memberPtr = JcudaUtils.fuzzyFilterRows(getRowValues(result), memberFnParams, threshold, nRows, column.length);
+        int nRows = rows.size();
+        var memberPtr = JcudaUtils.fuzzyFilterRows(getRowValues(rows), memberFnParams, threshold, nRows, column.length);
         short[] member = new short[nRows];
         cuMemcpyDtoH(Pointer.to(member), memberPtr, (long) nRows * Sizeof.SHORT);
-        for (int i = nRows - 1; i >= 0; --i) {
-            if (member[i] == 0) {
-                result.remove(i);
+
+        var result = new ArrayList<Row>();
+        for (int i = 0; i < nRows; ++i) {
+            if (member[i] == 1) {
+                result.add(rows.get(i));
             }
         }
         JcudaUtils.freeResources(memberPtr);
