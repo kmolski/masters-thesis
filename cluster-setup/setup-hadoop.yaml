@@ -88,7 +88,7 @@
         - "yarn-site.xml"
 
     - name: upload worker configuration
-      ansible.builtin.copy:
+      ansible.builtin.template:
         dest: /usr/local/hadoop/etc/hadoop/workers
         src: "etc/workers-{{ hadoop_master }}"
 

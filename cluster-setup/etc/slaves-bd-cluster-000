@@ -1,3 +1,3 @@
-bd-cluster-001
-bd-cluster-002
-bd-cluster-003
+{% for host in groups['workers'] %}
+{{ host }}
+{% endfor %}

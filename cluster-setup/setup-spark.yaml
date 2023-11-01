@@ -76,6 +76,6 @@
         - "spark-env.sh"
 
     - name: upload worker configuration
-      ansible.builtin.copy:
+      ansible.builtin.template:
         dest: /usr/local/spark/conf/slaves
         src: "etc/slaves-{{ spark_master }}"
