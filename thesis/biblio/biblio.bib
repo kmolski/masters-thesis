@@ -1,39 +1,173 @@
- 
-% ksiazka
-@Book{bib:ksiazka,
-  Title                    = {Tytuł książki},
-  Author                   = {Imię Nazwisko and Nazwisko, Imię and Imię Nazwisko},
-  Publisher                = {Wydawnictwo},
-  Year                     = {2017},
-  Address                  = {Warszawa},
-  ISBN                     = {83-204-3229-9-434}
+@online{rpi-spec,
+  author  = {Raspberry Pi Foundation},
+  title   = {Raspberry Pi product data overview},
+  year    = {2020},
+  url     = {https://static.raspberrypi.org/files/products/Board_Overview.pdf},
+  urldate = {2023-09-18}
 }
 
-% artykul w czasopismie
-@Article{bib:artykul,
-  Title                    = {Tytuł artykułu w czasopiśmie},
-  Author                   = {Imię Nazwisko and Nazwisko, Imię and Imię Nazwisko},
-  Journal                  = {Tytuł czasopisma},
-  Year                     = {2016},
-  Number                   = {8},
-  Pages                    = {1092--1113},
-  Volume                   = {157}
+@online{jetson-spec,
+  author  = {NVIDIA Corporation},
+  title   = {Jetson Modules: Technical Specifications},
+  year    = {2023},
+  url     = {https://developer.nvidia.com/embedded/jetson-modules},
+  urldate = {2023-09-19}
 }
 
-% artykul konferencyjny
-@InProceedings{bib:konferencja,
-  Title                    = {Tytuł artykułu konferencyjnego},
-  Author                   = {Imię Nazwisko and Nazwisko, Imię and Imię Nazwisko},
-  Booktitle                = {Nazwa konferecji},
-  Year                     = {2006}, 
-  Pages                    = {5346--5349}
+@article{rpi-cluster-1,
+  title   = {The development of a low-cost big data cluster using Apache Hadoop and Raspberry Pi. A complete guide},
+  author  = {Antônio José Alves Neto and José Aprígio Carneiro Neto and Edward David Moreno},
+  journal = {Computers and Electrical Engineering},
+  year    = {2022},
+  number  = {108403},
+  pages   = {1--5},
+  volume  = {104, Part A}
 }
- 
-% zrodlo internetowe
-@online{bib:internet,
-  author                   = {Imię Nazwisko and Nazwisko, Imię},
-  title                    = {Tytuł strony internetowej},
-  year                     = {2021}, 
-  url                      = {http://gdzies/w/internecie/internet.html},
-  urldate                  = {2021-09-30}
+
+@article{rpi-cluster-2,
+  author  = {Lee, Eunseo and Oh, Hyunju and Park, Dongchul},
+  journal = {IEEE Access},
+  title   = {Big Data Processing on Single Board Computer Clusters: Exploring Challenges and Possibilities},
+  year    = {2021},
+  volume  = {9},
+  pages   = {142551-142565},
+  doi     = {10.1109/ACCESS.2021.3120660}
+}
+
+@article{big-data-1,
+  title   = {What makes Big Data, Big Data? Exploring the ontological characteristics of 26 datasets},
+  author  = {Rob Kitchin and Gavin McArdle},
+  year    = {2016},
+  journal = {Big Data \& Society},
+  doi     = {10.1177/2053951716631130},
+  volume  = {3},
+  number  = {1}
+}
+
+@article{big-data-2,
+  title   = {Big Data for Creating and Capturing Value in the Digitalized Environment: Unpacking the Effects of Volume, Variety, and Veracity on Firm Performance},
+  author  = {Cappa, Francesco and Oriani, Raffaele and Peruffo, Enzo and McCarthy, Ian},
+  journal = {Journal of Product Innovation Management},
+  year    = {2021},
+  number  = {1},
+  volume  = {38}
+}
+
+@article{big-data-3,
+  title   = {A survey on platforms for big data analytics},
+  author  = {Dilpreet Singh and Chandan K Reddy},
+  journal = {Journal of Big Data},
+  year    = {2014},
+  number  = {8},
+  volume  = {2}
+}
+
+@book{computer-arch,
+  title     = {Computer Architecture: A Quantitative Approach, Sixth Edition},
+  author    = {John L. Hennessy and David A. Patterson},
+  publisher = {Morgan Kaufmann},
+  year      = {2017},
+  isbn      = {9780128119068}
+}
+
+@book{cuda-by-example,
+  title     = {CUDA by Example: An introduction to General-Purpose GPU Programming},
+  author    = {Jason Sanders and Edward Kandrot},
+  publisher = {Addison-Wesley Professional},
+  year      = {2011},
+  isbn      = {9780131387683}
+}
+
+@book{opencl,
+  title     = {Heterogeneous Computing with OpenCL},
+  author    = {Benedict Gaster and Lee Howes and David R. Kaeli and Perhaad Mistry and Dana Schaa},
+  publisher = {Morgan Kaufmann},
+  year      = {2011},
+  isbn      = {9780123877666}
+}
+
+@online{nuc-list,
+  author  = {Intel Corporation},
+  title   = {Intel NUC Mini PC with 13th Generation Intel Core Processors},
+  year    = {2023},
+  url     = {https://ark.intel.com/content/www/us/en/ark/products/series/233168/intel-nuc-mini-pc-with-13th-generation-intel-core-processors.html},
+  urldate = {2023-09-20}
+}
+
+@online{spark-gpu,
+  author  = {NVIDIA Corporation},
+  title   = {GPU-Accelerated Apache Spark 3},
+  year    = {2023},
+  url     = {https://www.nvidia.com/en-us/ai-data-science/spark-ebook/gpu-accelerated-spark-3},
+  urldate = {2023-10-06}
+}
+
+@online{spark-sql,
+  author  = {The Apache Software Foundation},
+  title   = {Spark SQL, DataFrames and Datasets Guide},
+  year    = {2023},
+  url     = {https://spark.apache.org/docs/latest/sql-programming-guide.html},
+  urldate = {2023-10-06}
+}
+
+@online{ansible-whitepaper,
+  author  = {Red Hat},
+  title   = {Ansible in depth},
+  year    = {2017},
+  url     = {https://www.ansible.com/hubfs/pdfs/Ansible-InDepth-WhitePaper.pdf},
+  urldate = {2023-10-19}
+}
+
+@inproceedings{spark-sql-catalyst,
+  author    = {Armbrust, Michael and Xin, Reynold S. and Lian, Cheng and Huai, Yin and Liu, Davies and Bradley, Joseph K. and Meng, Xiangrui and Kaftan, Tomer and Franklin, Michael J. and Ghodsi, Ali and Zaharia, Matei},
+  title     = {Spark SQL: Relational Data Processing in Spark},
+  year      = {2015},
+  publisher = {Association for Computing Machinery},
+  doi       = {10.1145/2723372.2742797},
+  booktitle = {Proceedings of the 2015 ACM SIGMOD International Conference on Management of Data},
+  pages     = {1383–1394},
+  numpages  = {12},
+  location  = {Melbourne, Victoria, Australia},
+  series    = {SIGMOD '15}
+}
+
+@online{balena-cluster,
+  author  = {Balena},
+  title   = {The Evolution of the Beast Continues},
+  year    = {2017},
+  url     = {https://blog.balena.io/the-evolution-of-the-beast-continues/},
+  urldate = {2023-10-25}
+}
+
+@online{oracle-cluster-1,
+  author  = {ServeTheHome},
+  title   = {Oracle Shows 1060 Raspberry Pi Supercomputer at OOW},
+  year    = {2019},
+  url     = {https://www.servethehome.com/oracle-shows-1060-raspberry-pi-supercomputer-at-oow/},
+  urldate = {2023-10-25}
+}
+
+@online{oracle-cluster-2,
+  author  = {Oracle},
+  title   = {World's Largest Raspberry Pi Cluster Comes to Oracle CloudWorld and JavaOne},
+  year    = {2022},
+  url     = {https://www.oracle.com/news/announcement/blog/worlds-largest-raspberry-pi-cluster-comes-to-ocw-and-javaone-2022-10-18/},
+  urldate = {2023-10-25}
+}
+
+@book{monte-carlo,
+  doi       = {10.1002/9781118014967},
+  title     = {Handbook of Monte Carlo Methods},
+  author    = {Kroese, Dirk P. and Taimre, Thomas and Botev, Zdravko I.},
+  publisher = {Wiley},
+  isbn      = {9780470177938},
+  year      = {2011}
+}
+
+@book{fuzzy-sets,
+  title     = {Rozmytość i bipolarność w inteligentnym wyszukiwaniu informacji},
+  author    = {Sławomir Zadrożny},
+  publisher = {Polska Akademia Nauk, Instytut Badań Systemowych},
+  isbn      = {8389475510},
+  year      = {2013}
 }
