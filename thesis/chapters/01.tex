@@ -1,10 +1,68 @@
 \chapter{Wstęp}
 
-%\begin{itemize}
-%\item wprowadzenie w problem/zagadnienie 
-%\item osadzenie problemu w dziedzinie 
-%\item cel pracy 
-%\item zakres pracy 
-%\item zwięzła charakterystyka rozdziałów 
-%\end{itemize}
+Wraz ze zwiększającą się skalą integracji i miniaturyzacją procesorów powstają nowe,
+coraz mniejsze formaty komputerów, czego dobrym przykładem są modele jednopłytkowe
+(ang. \english{Single-board computer, SBC}).
+Ten rodzaj komputera, w odróżnieniu od tradycyjnych rozwiązań, łączy procesor, pamięć
+operacyjną oraz interfejsy wejścia/wyjścia na jednej płytce drukowanej.
 
+Najpopularniejsze urządzenie w tej klasie pojawiło się w 2012 roku, wraz z premierą
+pierwszej generacji komputera Raspberry Pi. Jego podstawą był system na czipie (ang.
+\english{system on a chip, SoC}) łączący następujące układy scalone \cite{rpi-spec}:
+\begin{itemize}
+    \item jednordzeniowy procesor ARM o taktowaniu 700 MHz,
+    \item pamięć RAM o pojemności 512 MiB,
+    \item procesor graficzny,
+    \item kontroler Fast Ethernet,
+    \item kontroler USB 2.0.
+\end{itemize}
+
+Oficjalne wsparcie dla systemu operacyjnego Linux, mały pobór prądu oraz rosnąca wydajność
+kolejnych generacji sprawiły, że minikomputery Raspberry Pi stały się dobrą podstawą dla
+klastrów obliczeniowych do aplikacji \english{Big Data} \cite{rpi-cluster-2}. Takie klastry
+charakteryzują się atrakcyjnym stosunkiem wydajności do ceny, nawet jeśli maksymalna
+wydajność jest ograniczona w porównaniu z komercyjnymi rozwiązaniami.
+
+Co więcej, popularne platformy do obliczeń na dużych zbiorach danych, takie jak Apache Hadoop
+i Apache Spark, w najnowszych wersjach zarządzają również procesorami graficznymi, co ułatwia
+wykorzystanie tych jednostek w obliczeniach rozproszonych \cite{spark-gpu}. W połączeniu z
+komputerami jednopłytkowymi wspierającymi akcelerację GPU daje to szansę na osiągnięcie
+większej mocy obliczeniowej i lepszego stosunku wydajności do ceny.
+
+Celem pracy jest utworzenie i zbadanie wydajności klastra do obliczeń Big Data z~wykorzystaniem
+minikomputerów wspierających akcelerację GPU. Klaster powinien realizować obliczenia rozproszone
+z wykorzystaniem popularnych platform do przetwarzania \english{Big Data}, zapewniając jednocześnie
+konkurencyjną wydajność oraz niski koszt budowy.
+
+W ramach pracy zostaną opracowane programy wykorzystujące zarówno procesory główne, jak
+i procesory graficzne minikomputerów, zaimplementowane jako rozproszone zadania dla platform
+Apache Hadoop oraz Apache Spark. Języki programowania oraz narzędzia do programowania GPU zostaną
+dobrane z uwzględnieniem kompatybilności i~możliwości ponownego użycia kodu.
+
+Kolejnym ważnym aspektem będzie zautomatyzowanie procesu testowania opracowanych programów.
+Opracowane zostaną narzędzia do instalacji, konfiguracji i efektywnego zarządzania klastrem.
+Umożliwi to zbadanie wydajności dla wielu kombinacji programów, platform obliczeniowych,
+zbiorów danych oraz konfiguracji klastra. Zebrane w ten sposób dane posłużą do porównania
+klastra z innymi rozwiązaniami pod kątem wydajności i~opłacalności.
+
+\section*{Charakterystyka rozdziałów}
+
+Rozdział "\nameref{ch:analiza-tematu}" zawiera definicję zbiorów danych \english{Big Data} oraz opis
+podejść wykorzystywanych do przetwarzania tych danych. Opisano też popularne platformy do obliczeń
+rozproszonych i modele programowania procesorów graficznych. Omówiono istniejące klastry obliczeniowe
+złożone z minikomputerów jednopłytkowych.
+
+W rozdziale "\nameref{ch:budowa-klastra}" znajduje się opis klastra obliczeniowego zbudowanego
+na potrzeby pracy, poruszający kwestie doboru sprzętu, programów, a także podejścia do zarządzania
+klastra. Przedstawiono kompletny proces instalacji oprogramowania i konfiguracji środowiska.
+Zawarto też opis programów testowych, które zostały opracowane w ramach badań.
+
+Rozdział "\nameref{ch:badania}" opisuje badania wydajności przeprowadzone dla programów testowych.
+Opisano metodykę badań, zwracając szczególną uwagę na charakterystykę programów w~językach Java
+oraz CUDA. Przedstawiono wyniki dla programów PiEstimation, FuzzyGen, FuzzyCompute i~FuzzyFilter,
+a~także porównania z~konkurencyjnymi rozwiązaniami.
+
+Kończący pracę rozdział "\nameref{ch:podsumowanie}" zawiera podsumowanie zadań wykonanych w~ramach
+pracy i~ocenę powstałego w~jej wyniku rozwiązania. W~rozdziale przedstawiono też porównanie ogólnej
+wydajności klastra z~innymi rozwiązaniami, w~tym z~klastrem opartym o~komputery Raspberry Pi 4B
+oraz pojedynczym komputerem stacjonarnym.
