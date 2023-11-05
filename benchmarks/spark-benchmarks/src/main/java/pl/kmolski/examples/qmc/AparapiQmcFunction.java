@@ -7,8 +7,6 @@ import scala.Tuple2;
 public class AparapiQmcFunction {
 
     public static Long call(Tuple2<Long, Long> input) {
-        System.setProperty("com.aparapi.logLevel", "FINE");
-
         int nSamples = Math.toIntExact(input._2());
         int offset = (int) (input._1() * nSamples);
         final var guesses = new boolean[nSamples];
