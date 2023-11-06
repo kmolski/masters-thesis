@@ -1,0 +1,4 @@
+Cluster, Avg, STDev
+Jetson/CPU, 98.710, 4.799
+Jetson/CUDA, 119.991, 4.562
+PC, 11.361, 0.199
