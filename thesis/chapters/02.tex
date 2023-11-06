@@ -106,20 +106,6 @@ i~dzielenia danych tak, aby osiągnąć możliwie największą wydajność. Dane
 przetwarzane na tym samym komputerze, na którym są przechowywane, dzięki czemu
 ograniczany jest przesył danych w obrębie klastra. \newpage
 
-\begin{figure}
-      \centering
-      \includegraphics[width=0.7\textwidth]{./graf/HDFS.png}
-      \caption{Schemat systemu plików HDFS}
-      \label{fig:hdfs}
-\end{figure}
-
-\begin{figure}
-      \centering
-      \includegraphics[width=0.8\textwidth]{./graf/MapReduce.png}
-      \caption{Schemat przykładowego programu \english{MapReduce}}
-      \label{fig:mapreduce}
-\end{figure}
-
 Klaster Apache Hadoop składa się z trzech głównych części:
 \begin{enumerate}
       \item \english{Hadoop Distributed File System (HDFS)} –- rozproszony system plików dla
@@ -153,6 +139,20 @@ Klaster Apache Hadoop składa się z trzech głównych części:
                         o dostępnych zasobach.
             \end{itemize}
 \end{enumerate}
+
+\begin{figure}
+      \centering
+      \includegraphics[width=0.7\textwidth]{./graf/HDFS.png}
+      \caption{Schemat systemu plików HDFS}
+      \label{fig:hdfs}
+\end{figure}
+
+\begin{figure}
+      \centering
+      \includegraphics[width=0.8\textwidth]{./graf/MapReduce.png}
+      \caption{Schemat przykładowego programu \english{MapReduce}}
+      \label{fig:mapreduce}
+\end{figure}
 
 Choć implementacje faz \english{Map} i \english{Reduce} są pisane głównie w języku Java, to
 narzędzie \english{Hadoop Streaming} pozwala na użycie dowolnego programu, który komunikuje się
@@ -194,6 +194,20 @@ SQL \cite{spark-sql}. Spark SQL zapewnia też dostęp do danych z Apache Hive i 
 dostępu do relacyjnych baz danych (JDBC oraz ODBC), co ułatwia integrację z~istniejącymi
 aplikacjami.
 
+Jednym z kluczowych elementów Spark SQL jest DataFrame, czyli rozproszona kolekcja danych
+zorganizowana w kolumny. DataFrame można przyrównać do tabeli w relacyjnej bazie danych,
+ponieważ wspiera on wykonywanie operacji takich jak wybieranie, filtrowanie czy agregacja.
+
+Wraz z DataFrame pojawiły się także struktury Dataset, które łączą zalety RDD i~DataFrame,
+oferując zarówno typowanie statyczne, jak i operacje na poziomie kolumn. Dataset to kolekcja
+obiektów określonego typu, co oznacza, że błędy związane z typami mogą być wykrywane w czasie
+kompilacji, a nie tylko podczas wykonania.
+
+Statyczne typowanie zapewnia większe bezpieczeństwo i pewność podczas pisania kodu w
+porównaniu do operacji wykonywanych na DataFrame'ach, które są typowane dynamicznie.
+Przykład wykorzystania Dataset pokazano na listingu \ref{lst:spark-sql}.
+\newpage
+
 %TC:ignore
 \begin{lstlisting}[
     language=Java,
@@ -228,19 +242,6 @@ public class SparkSQLExample {
 \end{lstlisting}
 %TC:endignore
 
-Jednym z kluczowych elementów Spark SQL jest DataFrame, czyli rozproszona kolekcja danych
-zorganizowana w kolumny. DataFrame można przyrównać do tabeli w relacyjnej bazie danych,
-ponieważ wspiera on wykonywanie operacji takich jak wybieranie, filtrowanie czy agregacja.
-
-Wraz z DataFrame pojawiły się także struktury Dataset, które łączą zalety RDD i~DataFrame,
-oferując zarówno typowanie statyczne, jak i operacje na poziomie kolumn. Dataset to kolekcja
-obiektów określonego typu, co oznacza, że błędy związane z typami mogą być wykrywane w czasie
-kompilacji, a nie tylko podczas wykonania.
-
-Statyczne typowanie zapewnia większe bezpieczeństwo i pewność podczas pisania kodu w
-porównaniu do operacji wykonywanych na DataFrame'ach, które są typowane dynamicznie.
-Przykład wykorzystania Dataset pokazano na listingu \ref{lst:spark-sql}.
-
 Catalyst to optymalizator używany przez Spark SQL, który optymalizuje zapytania SQL na dwóch
 poziomach: najpierw na poziomie planu logicznego, następnie na poziomie planu fizycznego
 \cite{spark-sql-catalyst}. Plan logiczny opisuje tylko etapy potrzebne do obliczenia wyniku,
@@ -268,6 +269,12 @@ Podobnie jak w modelu SIMD (ang. \english{Single Instruction, Multiple Data}, je
 w architekturze CUDA instrukcje są wykonywane równolegle na wielu danych. Z drugiej strony,
 w modelu SIMT każdy wątek posiada własny kontekst, składający się ze stosu i rejestrów.
 
+Wątki CUDA są zorganizowane w grupy zwane blokami (Rys. \ref{fig:cuda-grid}), w których obrębie
+mogą wymieniać się danymi przez pamięć współdzieloną i synchronizować się za pomocą
+barier. Zarówno bloki wątków, jak i siatki składające się z tych bloków mogą być organizowane na
+różne sposoby przy użyciu struktur jedno-, dwu- lub trójwymiarowych. Ta elastyczność pomaga w
+tworzeniu wydajnych programów, które pozostają proste i łatwe w utrzymaniu.
+
 \begin{figure}
       \centering
       \includegraphics[width=0.8\textwidth]{graf/CUDA-Grid.png}
@@ -280,13 +287,6 @@ w modelu SIMT każdy wątek posiada własny kontekst, składający się ze stosu
       Program mnoży elementy tablic B i C, wynik jest zapisywany do tablicy A.
       \label{fig:cuda-grid}
 \end{figure}
-
-\newpage
-Wątki CUDA są zorganizowane w grupy zwane blokami (Rys. \ref{fig:cuda-grid}), w których obrębie
-mogą wymieniać się danymi przez pamięć współdzieloną i synchronizować się za pomocą
-barier. Zarówno bloki wątków, jak i siatki składające się z tych bloków mogą być organizowane na
-różne sposoby przy użyciu struktur jedno-, dwu- lub trójwymiarowych. Ta elastyczność pomaga w
-tworzeniu wydajnych programów, które pozostają proste i łatwe w utrzymaniu.
 
 W architekturze CUDA hierarchia pamięci odgrywa kluczową rolę w efektywnym wykorzystaniu
 układów graficznych. Model programowania CUDA udostępnia następujące rodzaje pamięci:
@@ -301,13 +301,14 @@ układów graficznych. Model programowania CUDA udostępnia następujące rodzaj
             Wspiera dostępy łączone, które znacznie przyspieszają operacje czytania oraz zapisu.
       \item pamięć stałych -- specjalny segment pamięci globalnej o ograniczonej pojemności, który
             jest przechowywany w pamięci podręcznej. Przeznaczony dla parametrów funkcji oraz danych,
-            które nie zmieniają się podczas wykonywania programu.
+            które nie zmieniają się podczas wykonywania programu. \newpage
       \item pamięć tekstur -- zoptymalizowana dla specyficznych wzorców dostępu, typowych dla programów
             związanych z grafiką komputerową. Dane podlegają przechowywaniu w~pamięci podręcznej procesora.
       \item pamięć lokalna -- segment pamięci globalnej, który jest używany do przechowywania zmiennych
             lokalnych wątku, gdy przekroczy on dostępną liczbę rejestrów. Charakteryzuje się większymi
             opóźnieniami od pamięci współdzielonej, ponieważ jest fizycznie przechowywana w zewnętrznej pamięci DRAM.
 \end{itemize}
+
 
 Układy graficzne firmy NVIDIA oferują jednakowy model programowania i wykorzystują wspólny pakiet narzędzi
 programistycznych, co ułatwia tworzenie przenośnych programów. Częścią modelu programowania jest język
@@ -339,8 +340,9 @@ systemów prowadzących obliczenia.
 
 Jednostka obliczeń (ang. \english{work-item}), odpowiadająca wątkowi w modelu CUDA, stanowi najmniejsze
 możliwą do zaplanowania i wykonania zadanie. Tak jak w modelu CUDA, jednostki obliczeń mogą być organizowane
-w grupy robocze (ang. \english{workgroup}), które są odpowiednikami bloków wątków. Komunikacja w obrębie
-grupy roboczej jest realizowana poprzez pamięć lokalną. Mechanizmy synchronizacji, takie jak bariery, pozwalają
+w grupy robocze (ang. \english{workgroup}), które są odpowiednikami bloków wątków. 
+
+Komunikacja w obrębie grupy roboczej jest realizowana poprzez pamięć lokalną. Mechanizmy synchronizacji, takie jak bariery, pozwalają
 na koordynację wykonania jednostek w ramach grupy roboczej.
 
 OpenCL oferuje programistom złożony, ale jednakowy dla wszystkich urządzeń model pamięci. Jego hierarchiczna
@@ -351,7 +353,7 @@ struktura składa się z następujących elementów:
             lokalnych w funkcjach. Jest to ekwiwalent pamięci lokalnej w CUDA.
       \item pamięć lokalna -- dostępna dla wszystkich jednostek obliczeń w obrębie jednej grupy roboczej. Jest szybsza
             niż pamięć globalna i idealnie nadaje się do przechowywania tymczasowych danych. Podobna do pamięci
-            współdzielonej w modelu CUDA. \newpage
+            współdzielonej w modelu CUDA.
       \item pamięć globalna -- pamięć dostępna dla wszystkich jednostek obliczeń w~obrębie kernela. Ze względu
             na jej globalny charakter, dostęp do niej może być wolniejszy w~porównaniu z innymi rodzajami pamięci,
             dlatego jej użycie powinno być ograniczane. Jest odpowiednikiem pamięci globalnej w CUDA.
@@ -369,6 +371,7 @@ związane z zarządzaniem pamięcią, synchronizacją jednostek obliczeń oraz o
 Podobnie jak w przypadku języka CUDA, kod OpenCL może być kompilowany do reprezentacji pośredniej.
 W przypadku OpenCL jest to SPIR (ang. \english{Standard Portable Intermediate Representation}),
 który przed wykonaniem programu jest optymalizowany dla architektury konkretnego urządzenia.
+\newpage
 
 \section{Klastry oparte o minikomputery jednopłytkowe}
 
@@ -386,11 +389,10 @@ Klaster był pierwotnie przeznaczony do testowania i demonstracji oprogramowania
 a ostatecznie został wysłany do klienta, który sponsorował jego budowę. Wkrótce potem
 rozpoczęto projektowanie kolejnej iteracji, nazwanej "Beast v3", która ma na celu dalsze
 zwiększenie modułowości, gęstości i łatwości montażu \cite{balena-cluster}.
-\newpage
 
-\begin{figure}
+\begin{figure}[h]
       \centering
-      \includegraphics[width=0.8\textwidth]{graf/Balena.jpg}
+      \includegraphics[width=0.9\textwidth]{graf/Balena.jpg}
       \caption {
             Klaster Beast v2. \cite{balena-cluster}
       }
@@ -411,9 +413,8 @@ za pomocą centralnego serwera rozruchowego \cite{oracle-cluster-1}.
 Przedstawiony klaster pokazał możliwości dystrybucji Oracle Linux, języka programowania Java
 oraz bazy danych Oracle w kontekście integracji powszechnie dostępnych komponentów, takich jak
 Raspberry Pi, w klastry obliczeniowe dużego formatu \cite{oracle-cluster-2}.
-\newpage
 
-\begin{figure}
+\begin{figure}[h]
       \centering
       \includegraphics[width=0.9\textwidth]{graf/Oracle.jpg}
       \caption {Klaster Raspberry Pi Supercomputer firmy Oracle. \cite{oracle-cluster-1}}
@@ -425,6 +426,7 @@ Artykuł autorstwa A. Neto, J. Neto i E. Moreno \cite{rpi-cluster-1} opisuje kla
 Minikomputery wykorzystują karty pamięci microSD jako dysk systemowy, a komunikacja
 między węzłami klastra realizowana jest przez sieć Ethernet. Przepustowość tej sieci
 nie została określona przez autorów.
+\newpage
 
 Oprócz opisu użytego sprzętu i oprogramowania artykuł zawiera również kompletny poradnik,
 który przedstawia proces instalacji, konfiguracji oraz testowania wydajności. W artykule
@@ -435,7 +437,7 @@ Aby ocenić funkcjonalność i wydajność skonstruowanego klastra, autorzy wyko
 TeraSort oraz TestDFSIO, które stanowią część oficjalnej dystrybucji Apache Hadoop.
 Dla każdej liczby węzłów wykonawczych (2, 4, 8) zbadano wydajność dla 4 rodzajów danych
 wejściowych. Wyniki zostały porównane pod kątem przyrostu wydajności w zależności
-od liczby węzłów, nie przeprowadzono porównania z innymi klastrami. \newpage
+od liczby węzłów, nie przeprowadzono porównania z innymi klastrami.
 
 Klaster opisany przez E. Lee, H. Oh oraz D. Park \cite{rpi-cluster-2} składa się z 6
 minikomputerów Raspberry Pi 4B. W porównaniu do poprzedniego artykułu opisane jest

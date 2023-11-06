@@ -1,96 +1,898 @@
-\chapter{Badania}
-%
-% 
-%
-%Rozdział przedstawia przeprowadzone badania. Jest to zasadnicza część i~musi wyraźnie dominować w~pracy.
-%Badania i analizę wyników należy przeprowadzić, tak jak jest przyjęte w środowisku naukowym (na przykład korzystanie z danych benchmarkowych, walidacja krzyżowa, zapewnienie powtarzalności testów itd). 
-%
-%\section{Metodyka badań}
-%
-%\begin{itemize}
-%\item opis metodyki badań
-%\item opis stanowiska badawczego (opis interfejsu aplikacji badawczych -- w~załączniku)
-%\end{itemize}
-%
-%
-%\section{Zbiory danych}
-%
-%\begin{itemize}
-%\item opis danych
-%\end{itemize}
-%
-%
-%\section{Wyniki}
-%
-%\begin{itemize}
-%\item prezentacja wyników, opracowanie i poszerzona dyskusja  wyników, wnioski
-%\end{itemize}
-%
-% 
-%\begin{table}
-%\centering
-%\caption{Opis tabeli nad nią.}
-%\label{id:tab:wyniki}
-%\begin{tabular}{rrrrrrrr}
-%\toprule
-%	         &                                     \multicolumn{7}{c}{metoda}                                      \\
-%	         \cmidrule{2-8}
-%	         &         &         &        \multicolumn{3}{c}{alg. 3}        & \multicolumn{2}{c}{alg. 4, $\gamma = 2$} \\
-%	         \cmidrule(r){4-6}\cmidrule(r){7-8}
-%	$\zeta$ &     alg. 1 &   alg. 2 & $\alpha= 1.5$ & $\alpha= 2$ & $\alpha= 3$ &   $\beta = 0.1$  &   $\beta = -0.1$ \\
-%\midrule
-%	       0 &  8.3250 & 1.45305 &       7.5791 &    14.8517 &    20.0028 & 1.16396 &                       1.1365 \\
-%	       5 &  0.6111 & 2.27126 &       6.9952 &    13.8560 &    18.6064 & 1.18659 &                       1.1630 \\
-%	      10 & 11.6126 & 2.69218 &       6.2520 &    12.5202 &    16.8278 & 1.23180 &                       1.2045 \\
-%	      15 &  0.5665 & 2.95046 &       5.7753 &    11.4588 &    15.4837 & 1.25131 &                       1.2614 \\
-%	      20 & 15.8728 & 3.07225 &       5.3071 &    10.3935 &    13.8738 & 1.25307 &                       1.2217 \\
-%	      25 &  0.9791 & 3.19034 &       5.4575 &     9.9533 &    13.0721 & 1.27104 &                       1.2640 \\
-%	      30 &  2.0228 & 3.27474 &       5.7461 &     9.7164 &    12.2637 & 1.33404 &                       1.3209 \\
-%	      35 & 13.4210 & 3.36086 &       6.6735 &    10.0442 &    12.0270 & 1.35385 &                       1.3059 \\
-%	      40 & 13.2226 & 3.36420 &       7.7248 &    10.4495 &    12.0379 & 1.34919 &                       1.2768 \\
-%	      45 & 12.8445 & 3.47436 &       8.5539 &    10.8552 &    12.2773 & 1.42303 &                       1.4362 \\
-%	      50 & 12.9245 & 3.58228 &       9.2702 &    11.2183 &    12.3990 & 1.40922 &                       1.3724 \\
-%\bottomrule
-%\end{tabular}
-%\end{table}  
-%
-%
-% 
-%\begin{figure}
-%\centering
-%\begin{tikzpicture}
-%\begin{axis}[
-%    y tick label style={
-%        /pgf/number format/.cd,
-%            fixed,   % po zakomentowaniu os rzednych jest indeksowana wykladniczo
-%            fixed zerofill, % 1.0 zamiast 1
-%            precision=1,
-%        /tikz/.cd
-%    },
-%    x tick label style={
-%        /pgf/number format/.cd,
-%            fixed,
-%            fixed zerofill,
-%            precision=2,
-%        /tikz/.cd
-%    }
-%]
-%\addplot [domain=0.0:0.1] {rnd};
-%\end{axis} 
-%\end{tikzpicture}
-%\caption{Podpis rysunku po rysunkiem.}
-%\label{fig:2}
-%\end{figure}
-%
-%
-%\begin{figure}
-%\begin{lstlisting}
-%if (_nClusters < 1)
-%	throw std::string ("unknown number of clusters");
-%if (_nIterations < 1 and _epsilon < 0)
-%	throw std::string ("You should set a maximal number of iteration or minimal difference -- epsilon.");
-%if (_nIterations > 0 and _epsilon > 0)
-%	throw std::string ("Both number of iterations and minimal epsilon set -- you should set either number of iterations or minimal epsilon.");
-%\end{lstlisting}
-%\caption{Przykład pseudokodu}
-%\end{figure}
+\chapter{Badania} \label{ch:badania}
+
+\section{Metodyka badań}
+
+Jednym z głównych celów pracy było zbadanie wydajności klastra do obliczeń \english{Big Data}
+zbudowanego z~minikomputerów wspierających akcelerację GPU. Dla klastra zostały opracowane zadania
+rozproszone z~wykorzystaniem dla platform Apache Hadoop oraz Apache Spark, które pełnią funkcję
+testów wydajności.
+
+Przeprowadzono analizę czasu wykonania każdego programu testowego dla zbiorów danych o różnej
+wielkości, wykorzystując zarówno procesory główne, jak i~graficzne. Pozwoliło to na dokładniejszą
+ocenę skalowalności klastra oraz poszczególnych aplikacji. Dodatkowo dla platformy Hadoop zostały
+zebrane dane o~czasie przeznaczonym na obliczenia procesora głównego oraz czasy wykonania faz
+MapReduce, które dają dodatkowy wgląd w proces wykonania programów na klastrze.
+
+Aby zapewnić odpowiednią dokładność pomiaru czasu, programy testowe zostały uruchomione wielokrotnie
+dla każdego zbioru danych i~implementacji algorytmu. Na potrzeby pracy były to co najmniej 4
+uruchomienia każdej konfiguracji. Następnie z czasów cząstkowych obliczona została średnia
+arytmetyczna i~odchylenie standardowe.
+
+Szczególnej uwagi wymagały testy systemów opartych o maszynę wirtualną Javy. Wykorzystywana
+w~badaniach implementacja HotSpot zawiera kompilator Just-In-Time, który optymalizuje kod podczas
+jego wykonania. Kompilator ten monitoruje wykonanie programu i~identyfikuje często używane fragmenty
+kodu, które są następnie przekształcane z~kodu bajtowego Javy do szybszego kodu maszynowego.
+
+Optymalizacje przeprowadzane podczas wykonania programu generują pewne problemy związane
+z~pomiarami wydajności. Przy wielokrotnym uruchamianiu programu często można zaobserwować zmieniające
+się wyniki, które stabilizują się po pewnym czasie. Aby uzyskać stabilną wydajność, konieczne jest
+kilkukrotne uruchomienie testowanych programów przed dokonaniem pomiarów.
+\newpage
+
+Podobnym zachowaniem wykazują się programy CUDA w~formacie PTX, który jest w~istocie przenośnym
+językiem asemblerowym. Przy pierwszym uruchomieniu na danej karcie graficznej, program PTX jest
+kompilowany do kodu maszynowego specyficznego dla procesora graficznego, a~następnie zapisywany
+na dysku dla kolejnych wywołań.
+
+Wydajność klastra minikomputerów Jetson Nano została porównana z~pojedynczym komputerem stacjonarnym
+wyposażonym w~procesor AMD Ryzen 5600X, 16 GB pamięci RAM oraz dysk twardy o pojemności 2 TB.
+Dodatkowo dla programu PiEstimation umieszczono porównanie z~klastrem Raspberry Pi 4B, opisanym
+w~artykule \cite{rpi-cluster-2}.
+
+\section{Program PiEstimation}
+
+Program PiEstimation charakteryzuje się stosunkowo wysokim użyciem mocy obliczeniowej i~niską liczbą
+operacji odczytu/zapisu. Szacowanie wartości liczby $\pi$ odbywa się wyłącznie na podstawie sekwencji
+punktów z ciągu Haltona, przez co charakterystyka wydajności programu jest bardziej podobna do aplikacji
+metod numerycznych niż do typowych zadań \english{Big Data}.
+
+W ramach badań przeprowadzono pomiar czasu wykonania programu na platformach Hadoop oraz Spark.
+Każda implementacja algorytmu została przetestowana dla różnych wartości liczby próbek. Badania
+skupiały się na trzech wartościach: 1 miliona próbek, 100 milionów próbek oraz 1 miliarda próbek.
+
+Dla ostatniej wartości, czyli 1 miliarda próbek, przeprowadzono dodatkowe analizy podziału zadań.
+W pierwszej z~nich przetwarzanie próbek było podzielone na 10 zadań, z~których każde zawierało 100 milionów
+próbek. W drugim scenariuszu podział obejmował aż 100 zadań, które składały się z 10 milionów próbek.
+
+Po analizie czasów wykonania dla 1 miliona próbek okazało się, że badany klaster osiągnął gorsze wyniki
+od komputera stacjonarnego i~klastra Raspberry Pi opisanego w~artykule \cite{rpi-cluster-2}. Implementacje
+algorytmu w~językach Java i~CUDA okazały się najszybszymi dla klastra Hadoop złożonego z~minikomputerów
+Jetson Nano (Rys. \ref{fig:piestimation:hadoop:1M}), osiągając trzykrotnie dłuższy czas wykonania w
+porównaniu z komputerem stacjonarnym.
+
+W przypadku platformy Spark wydajność implementacji w języku Java i CUDA była bardzo podobna, jednak nawet
+najlepszy czas dla klastra Jetson Nano był ponad pięć razy większy od czasu wykonania na
+komputerze stacjonarnym (Rys. \ref{fig:piestimation:spark:1M}).
+
+\begin{figure}[h]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+                ybar,
+                width=0.8\textwidth,
+                height=0.4\textheight,
+                symbolic x coords={Pi 4B, CPU, OpenCL, CUDA, PC},
+                xtick={Pi 4B, CPU, OpenCL, CUDA, PC},
+                bar width=25pt,
+                ymin=0,
+                ylabel={Czas wykonania [s]}
+            ]
+            \addplot [error bars/.cd, y dir=both, y explicit]
+            table [col sep=comma, x=Cluster, y=Avg, y error=STDev]{data/pi-1M-hadoop.csv};
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Czasy wykonania PiEstimation dla platformy Hadoop i 1 miliona próbek.}
+    \medskip \small
+    Etykiety CPU, OpenCL oraz CUDA odpowiadają wynikom dla klastra Jetson Nano.
+    \label{fig:piestimation:hadoop:1M}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+                ybar,
+                width=0.8\textwidth,
+                height=0.4\textheight,
+                symbolic x coords={CPU, OpenCL, CUDA, PC},
+                xtick={CPU, OpenCL, CUDA, PC},
+                bar width=25pt,
+                ymin=0,
+                ylabel={Czas wykonania [s]}
+            ]
+            \addplot [error bars/.cd, y dir=both, y explicit]
+            table [col sep=comma, x=Cluster, y=Avg, y error=STDev]{data/pi-1M-spark.csv};
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Czasy wykonania PiEstimation dla platformy Spark i 1 miliona próbek.}
+    \medskip \small
+    Etykiety CPU, OpenCL oraz CUDA odpowiadają wynikom dla klastra Jetson Nano.
+    \label{fig:piestimation:spark:1M}
+\end{figure}
+
+Dla algorytmu opartego o standard OpenCL wyniki były mniej obiecujące. Przy wartości 1~miliona próbek
+nie udało się osiągnąć konkurencyjnej wydajności. Co więcej, próba uruchomienia programu OpenCL z~większą
+liczbą próbek kończyła się przerywaniem zadań Hadoop i~Spark ze względu na zbyt duże użycie pamięci.
+\newpage
+
+Przy wartości 100 milionów próbek program Hadoop wykorzystujący CUDA był o~18\% szybszy od implementacji
+na procesor główny, jednak w porównaniu z~komputerem stacjonarnym klaster Jetson Nano okazał się ponad
+dwa razy wolniejszy (Rys. \ref{fig:piestimation:hadoop:100M}).
+
+\begin{figure}[h]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+                ybar,
+                width=0.8\textwidth,
+                height=0.4\textheight,
+                symbolic x coords={Jetson/CPU, Jetson/CUDA, PC},
+                xtick={Jetson/CPU, Jetson/CUDA, PC},
+                bar width=35pt,
+                ymin=0,
+                ylabel={Czas wykonania [s]}
+            ]
+            \addplot [error bars/.cd, y dir=both, y explicit]
+            table [col sep=comma, x=Cluster, y=Avg, y error=STDev]{data/pi-100M-hadoop.csv};
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Czasy wykonania PiEstimation dla platformy Hadoop i 100 milionów próbek.}
+    \label{fig:piestimation:hadoop:100M}
+\end{figure}
+
+Dużo większe przyspieszenie zanotowano dla programu na platformę Spark. W~jego przypadku czas wykonania
+algorytmu CUDA został skrócony ponad dwukrotnie w stosunku do implementacji na CPU i~był konkurencyjny
+względem pojedynczego komputera stacjonarnego (Rys. \ref{fig:piestimation:spark:100M}).
+
+\begin{figure}[h!]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+                ybar,
+                width=0.8\textwidth,
+                height=0.4\textheight,
+                symbolic x coords={Jetson/CPU, Jetson/CUDA, PC},
+                xtick={Jetson/CPU, Jetson/CUDA, PC},
+                bar width=35pt,
+                ymin=0,
+                ylabel={Czas wykonania [s]}
+            ]
+            \addplot [error bars/.cd, y dir=both, y explicit]
+            table [col sep=comma, x=Cluster, y=Avg, y error=STDev]{data/pi-100M-spark.csv};
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Czasy wykonania PiEstimation dla platformy Spark i 100 milionów próbek.}
+    \label{fig:piestimation:spark:100M}
+\end{figure}
+\newpage
+
+W przypadku platformy Hadoop można zauważyć znaczny spadek użytego czasu procesora i~czasu spędzonego
+w~fazie Map (Tab. \ref{tab:piestimation:mapreduce:100M}). Co ciekawe, niższy okazał się też czas spędzony
+w~fazie Reduce, której obliczenia są wykonywane tylko na procesorze głównym. Pozorne przyspieszenie wynikało
+z~faktu równoległego wykonania faz Map i~Reduce, przez co czas oczekiwania na etap Map był włączany do
+czasu trwania etapu Reduce.
+
+%TC:ignore
+\begin{table}[h]
+    \centering
+    \caption{Czas procesora i wykonania faz PiEstimation dla 100 milionów próbek.}
+    \begin{tabular}{ | l | r | r | r | }
+        \hline
+                              & Jetson (CPU) & Jetson (CUDA) & PC     \\
+        \hline
+        Czas CPU [ms]         & 775 065       & 243 322        & 143 557 \\
+        Czas fazy Map [ms]    & 4 828 542      & 3 904 967       & 330 540 \\
+        Czas fazy Reduce [ms] & 194 061       & 163 824        & 63 677  \\
+        \hline
+    \end{tabular}
+    \label{tab:piestimation:mapreduce:100M}
+\end{table}
+%TC:endignore
+
+Dla wartości 1 miliarda próbek wyniki były jeszcze bardziej imponujące. Program CUDA dla platformy Hadoop
+osiągnął pięciokrotne przyspieszenie w porównaniu do implementacji na procesor główny (Rys. \ref{fig:piestimation:hadoop:1B}).
+
+\begin{figure}[h]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+                ybar,
+                width=0.8\textwidth,
+                height=0.4\textheight,
+                symbolic x coords={Jetson/CPU, Jetson/CUDA, PC},
+                xtick={Jetson/CPU, Jetson/CUDA, PC},
+                bar width=20pt,
+                ymin=0,
+                ylabel={Czas wykonania [s]}
+            ]
+            \addplot [error bars/.cd, y dir=both, y explicit]
+            table [col sep=comma, x=Cluster, y=Avg, y error=STDev]{data/pi-1B-hadoop.csv};
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Czasy wykonania PiEstimation dla platformy Hadoop}
+    \medskip \small
+    Podział 10x100 milionów próbek.
+    \label{fig:piestimation:hadoop:1B}
+\end{figure}
+
+Dla platformy Spark przyrost wydajności był jeszcze bardziej zauważalny, ponieważ uzyskany czas wykonania
+był ponad osiem razy krótszy (Rys. \ref{fig:piestimation:spark:1B}).
+
+\begin{figure}[h!]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+                ybar,
+                width=0.8\textwidth,
+                height=0.35\textheight,
+                symbolic x coords={Jetson/CPU, Jetson/CUDA, PC},
+                xtick={Jetson/CPU, Jetson/CUDA, PC},
+                bar width=20pt,
+                ymin=0,
+                ylabel={Czas wykonania [s]}
+            ]
+            \addplot [error bars/.cd, y dir=both, y explicit]
+            table [col sep=comma, x=Cluster, y=Avg, y error=STDev]{data/pi-1B-spark.csv};
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Czasy wykonania PiEstimation dla platformy Spark}
+    \medskip \small
+    Podział 100x10 milionów próbek.
+    \label{fig:piestimation:spark:1B}
+\end{figure}
+\newpage
+
+Co więcej, klaster minikomputerów Jetson Nano po raz pierwszy uzyskał lepszy czas wykonania od testowanego
+komputera stacjonarnego. Na platformie Hadoop program wykonał się około 36\% szybciej, a~na platformie
+Spark -- ponad dwukrotnie szybciej.
+
+Kolejne obserwacje dotyczyły wpływu podziału zadań na czas wykonania. W przypadku implementacji
+na procesor główny i~programów Spark szybszy okazał się podział na 100 mniejszych zadań
+(Rys. \ref{fig:pisplit:spark:1B} oraz \ref{fig:pisplit:hadoop:1B}).
+
+\begin{figure}[h!]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+                ybar,
+                width=1\textwidth,
+                height=0.35\textheight,
+                symbolic x coords={CPU (100x10M), CUDA (100x10M), CPU (10x100M), CUDA (10x100M)},
+                xtick={CPU (100x10M), CUDA (100x10M), CPU (10x100M), CUDA (10x100M)},
+                bar width=20pt,
+                ymin=0,
+                ylabel={Czas wykonania [s]}
+            ]
+            \addplot [error bars/.cd, y dir=both, y explicit]
+            table [col sep=comma, x=Cluster, y=Avg, y error=STDev]{data/pi-1B-spark-b.csv};
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Czasy wykonania PiEstimation dla Spark wg. podziału próbek.}
+    \medskip \small
+    Etykiety CPU oraz CUDA odpowiadają wynikom dla klastra Jetson Nano.
+    \label{fig:pisplit:spark:1B}
+\end{figure}
+\newpage
+
+Z~drugiej strony, program Hadoop wykorzystujący implementację
+w~środowisku CUDA uzyskał lepszy wynik przy podziale na 10 większych zadań (Rys. \ref{fig:pisplit:hadoop:1B}).
+
+\begin{figure}[h]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+                ybar,
+                width=1\textwidth,
+                height=0.4\textheight,
+                symbolic x coords={CPU (100x10M), CUDA (100x10M), CPU (10x100M), CUDA (10x100M)},
+                xtick={CPU (100x10M), CUDA (100x10M), CPU (10x100M), CUDA (10x100M)},
+                bar width=20pt,
+                ymin=0,
+                ylabel={Czas wykonania [s]}
+            ]
+            \addplot [error bars/.cd, y dir=both, y explicit]
+            table [col sep=comma, x=Cluster, y=Avg, y error=STDev]{data/pi-1B-hadoop-b.csv};
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Czasy wykonania PiEstimation dla Hadoop wg. podziału próbek.}
+    \medskip \small
+    Etykiety CPU oraz CUDA odpowiadają wynikom dla klastra Jetson Nano.
+    \label{fig:pisplit:hadoop:1B}
+\end{figure}
+
+\subsection*{Optymalizacje}
+
+Algorytm w języku CUDA podzielony jest na dwa kernele. Pierwszy z~nich generuje punkty na podstawie liczb
+z~ciągu Haltona i~sprawdza ich przynależność do okręgu, a~następnie zapisuje wynik porównania do tablicy (listing \ref{lst:cuda-qmc-kernel}. Każdy wątek CUDA zajmuje się przetwarzanie pojedynczego punktu.
+
+Drugi kernel (listing \ref{lst:cuda-reduction}) operuje na tablicy przynależności, obliczając na jej podstawie całkowitą liczbę punktów
+zawartych w okręgu.
+
+Kernel do obliczania liczby punktów w okręgu wykorzystuje pamięć współdzieloną, dostępną dla wątków
+w~obrębie jednego bloku. Jest ona szybsza niż globalna pamięć urządzenia, ale ma ograniczoną pojemność.
+Wykorzystanie pamięci współdzielonej pozwoliło na znaczące przyspieszenie tej operacji.
+\newpage
+
+%TC:ignore
+\begin{lstlisting}[
+    language=C,
+    label=lst:cuda-qmc-kernel,
+    caption={Kernel CudaQmcKernel realizujący próbkowanie punktów.}
+]
+constexpr int BASES[] = {2, 3};
+constexpr int MAX_DIGITS[] = {63, 40};
+__device__ float get_random_point(const long index, float q[], int d[], int base, int max_digits) {
+    float value = 0.0f;
+    long k = index;
+    for (int i = 0; i < max_digits; i++) {
+        q[i] = (i == 0 ? 1.0f : q[i - 1]) / base;
+        d[i] = (int) (k % base);
+        k = (k - d[i]) / base;
+        value += d[i] * q[i];
+    }
+    for (int i = 0; i < max_digits; i++) {
+        d[i]++;
+        value += q[i];
+        if (d[i] < base) {
+            break;
+        }
+        value -= (i == 0 ? 1.0f : q[i - 1]);
+    }
+    return value;
+}
+extern "C"
+__global__ void qmc_mapper(short guesses[], const int64_t count, const int64_t offset) {
+    const int32_t index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index < count) {
+        const int64_t index_offset = index + offset;
+        float q[64] = {0.0f};
+        int d[64] = {0};
+        const float x = get_random_point(index_offset, q, d, BASES[0], MAX_DIGITS[0]) - 0.5f;
+        const float y = get_random_point(index_offset, q, d, BASES[1], MAX_DIGITS[1]) - 0.5f;
+        guesses[index] = (x * x + y * y > 0.25f) ? 1 : 0;
+    }
+}
+\end{lstlisting}
+%TC:endignore
+
+%TC:ignore
+\begin{lstlisting}[
+    language=C,
+    label=lst:cuda-reduction,
+    caption={Kernel CudaReduction implementujący zliczanie punktów.}
+]
+extern "C"
+__global__ void reduce_short(const short input[],
+        short output[], const int64_t count) {
+    extern __shared__ short shared_data[];
+    const int32_t tid = threadIdx.x;
+    const int32_t index = blockIdx.x * blockDim.x + tid;
+    if (index < count) {
+        shared_data[tid] = input[index];
+    }
+    __syncthreads();
+    for (int32_t s = blockDim.x / 2; s > 0; s >>= 1) {
+        if (tid < s) {
+            shared_data[tid] += shared_data[tid + s];
+        }
+        __syncthreads();
+    }
+    if (tid == 0) {
+        output[blockIdx.x] = shared_data[0];
+    }
+}
+\end{lstlisting}
+%TC:endignore
+
+Podjęto inne próby optymalizacji kernela do zliczania punktów, które opierały się na:
+\begin{itemize}
+    \item dostosowaniu rozmiaru siatki i bloków,
+    \item wykonywaniu wielu operacji dodawania w każdym wątku,
+    \item wykonywaniu ostatniego etapu zliczania na procesorze graficznym,
+    \item wykorzystaniu synchronizacji wątków w tej samej osnowie (ang. \english{warp}), co pozwoliłoby
+          na zmniejszenie liczby barier używanych do synchronizacji.
+\end{itemize}
+
+Opisane optymalizacje nie spowodowały znaczącego przyspieszenia algorytmu w języku CUDA, ponieważ
+dla testowanych parametrów udział wybranego kernela w ogólnym czasie wykonania był zbyt mały.
+
+W drugiej kolejności optymalizowano kernel realizujący próbkowanie w~ramach metody Monte Carlo.
+Z~generatora liczb losowych wydzielono część obliczeń niezależną od rozpatrywanego punktu,
+którą następnie przeniesiono do etapu kompilacji, zapisując jej wyniki w~pamięci stałych.
+Niestety, wspomniana optymalizacja również nie pociągnęła za sobą wzrostu wydajności.
+
+\section{Program FuzzyGen}
+
+Program FuzzyGen charakteryzuje się stosunkowo niskim użyciem mocy obliczeniowej i~liczbą operacji odczytu.
+W~tym przypadku głównym czynnikiem wpływającym na wydajność jest szybkość zapisu danych. Jedynym
+parametrem wejściowym algorytmów jest liczba generowanych rekordów, więc charakterystyka wydajności
+programu jedynie częściowo odpowiada realnym aplikacjom \english{Big Data}.
+
+Aplikacje stworzone dla platform Hadoop i~Spark zostały poddane testom wydajności, dla których parametr
+liczby generowanych porcji zbiorów przyjmował wartości 10 tysięcy porcji oraz 100 tysięcy porcji.
+
+W przypadku mniejszego zestawu, zawierającego 10 tysięcy porcji, implementacje na procesory główne
+i~graficzne miały zbliżone wyniki pod względem czasu wykonania (Rys. \ref{fig:fuzzygen:hadoop:10K}
+oraz \ref{fig:fuzzygen:spark:10K}). Różnice w wydajności implementacji nie przekraczały 4 procent,
+lecz w~obu przypadkach klaster minikomputerów Jetson Nano okazał się wolniejszy od komputera
+stacjonarnego.
+
+\begin{figure}[h!]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+                ybar,
+                width=0.8\textwidth,
+                height=0.4\textheight,
+                symbolic x coords={Jetson/CPU, Jetson/CUDA, PC},
+                xtick={Jetson/CPU, Jetson/CUDA, PC},
+                bar width=20pt,
+                ymin=0,
+                ylabel={Czas wykonania [s]}
+            ]
+            \addplot [error bars/.cd, y dir=both, y explicit]
+            table [col sep=comma, x=Cluster, y=Avg, y error=STDev]{data/fuzzygen-10K-hadoop.csv};
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Czasy wykonania FuzzyGen dla platformy Hadoop i 10 tysięcy porcji.}
+    \label{fig:fuzzygen:hadoop:10K}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+                ybar,
+                width=0.8\textwidth,
+                height=0.4\textheight,
+                symbolic x coords={Jetson/CPU, Jetson/CUDA, PC},
+                xtick={Jetson/CPU, Jetson/CUDA, PC},
+                bar width=20pt,
+                ymin=0,
+                ylabel={Czas wykonania [s]}
+            ]
+            \addplot [error bars/.cd, y dir=both, y explicit]
+            table [col sep=comma, x=Cluster, y=Avg, y error=STDev]{data/fuzzygen-10K-spark.csv};
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Czasy wykonania FuzzyGen dla platformy Spark i 10 tysięcy porcji.}
+    \label{fig:fuzzygen:spark:10K}
+\end{figure}
+
+Podczas generowania zbioru o~objętości 100 tysięcy porcji na platformie Hadoop zauważono niewielkie
+różnice w~czasie wykonania (Rys. \ref{fig:fuzzygen:hadoop:100K}). Implementacja w~języku CUDA była
+około 2\% szybsza od wersji na procesor główny. Co ciekawe, czas potrzebny na wygenerowanie większego
+zestawu danych nie różnił się znacząco od czasu przeznaczonego na wygenerowanie 10 tysięcy rekordów.
+
+\begin{figure}[h!]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+                ybar,
+                width=0.8\textwidth,
+                height=0.4\textheight,
+                symbolic x coords={Jetson/CPU, Jetson/CUDA, PC},
+                xtick={Jetson/CPU, Jetson/CUDA, PC},
+                bar width=20pt,
+                ymin=0,
+                ylabel={Czas wykonania [s]}
+            ]
+            \addplot [error bars/.cd, y dir=both, y explicit]
+            table [col sep=comma, x=Cluster, y=Avg, y error=STDev]{data/fuzzygen-100K-hadoop.csv};
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Czasy wykonania FuzzyGen dla platformy Hadoop i 100 tysięcy porcji.}
+    \label{fig:fuzzygen:hadoop:100K}
+\end{figure}
+
+Większą różnicę zaobserwowano podczas generowania 100 tysięcy porcji danych programem dla platformy Spark
+-- w~tym przypadku różnica wynosiła prawie 8\% na korzyść algorytmu w~języku CUDA (Rys. \ref{fig:fuzzygen:spark:100K}).
+
+Mimo uzyskanego wzrostu wydajności klaster oparty o~minikomputery Jetson Nano znów okazał się
+wolniejszy od pojedynczego komputera stacjonarnego.
+Co ciekawe, w~przypadku platformy Hadoop implementacje dla CPU i~GPU nie różniły się znacząco pod
+względem zużytego czasu procesora oraz czasu spędzonego w~fazie Map (Tab. \ref{tab:fuzzygen:mapreduce:100K}).
+
+\begin{figure}[h!]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+                ybar,
+                width=0.8\textwidth,
+                height=0.35\textheight,
+                symbolic x coords={Jetson/CPU, Jetson/CUDA, PC},
+                xtick={Jetson/CPU, Jetson/CUDA, PC},
+                bar width=20pt,
+                ymin=0,
+                ylabel={Czas wykonania [s]}
+            ]
+            \addplot [error bars/.cd, y dir=both, y explicit]
+            table [col sep=comma, x=Cluster, y=Avg, y error=STDev]{data/fuzzygen-100K-spark.csv};
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Czasy wykonania FuzzyGen dla platformy Spark i 100 tysięcy porcji.}
+    \label{fig:fuzzygen:spark:100K}
+\end{figure}
+
+%TC:ignore
+\begin{table}[h]
+    \centering
+    \caption{Czas procesora i wykonania faz FuzzyGen dla 100 tysięcy porcji.}
+    \begin{tabular}{ | l | r | r | r | }
+        \hline
+                           & Jetson (CPU) & Jetson (CUDA) & PC   \\
+        \hline
+        Czas CPU [ms]      & 11 600        & 11 477         & 1 907 \\
+        Czas fazy Map [ms] & 23 990        & 23 983         & 3 422 \\
+        \hline
+    \end{tabular}
+    \label{tab:fuzzygen:mapreduce:100K}
+\end{table}
+%TC:endignore
+
+\subsection*{Optymalizacje}
+
+Pierwsza wersja programu dla procesora graficznego używała domyślnego generatora liczb pseudolosowych
+biblioteki cuRAND, czyli generatora XORWOW. W~ramach optymalizacji programu sprawdzono też czas wykonania dla 
+innych generatorów. Podane czasy zostały zmierzone podczas generowania zbiorów o~objętości 100 tysięcy porcji danych.
+
+Używając domyślnego generatora liczb pseudolosowych o~nazwie XORWOW, udało się wygenerować zbiór danych
+o~objętości 100 tysięcy porcji w~relatywnie krótkim czasie, wynoszącym 16.5 sekundy (Tab. \ref{tab:fuzzygen:generators}).
+
+Generator MT19937 okazał się wolniejszy od domyślnego generatora XORWOW. Zmierzony czas wykonania okazał
+się większy o~ponad 60\%. Czas potrzebny na wygenerowanie 100 tysięcy porcji wynosił 27.6 sekundy.
+
+%TC:ignore
+\begin{table}[h]
+    \centering
+    \caption{Czasy wykonania FuzzyGen dla platformy Spark i 100 tysięcy porcji.}
+    \begin{tabular}{ | l | r | }
+        \hline
+        Generator liczb losowych & Czas wykonania [s] \\
+        \hline
+        XORWOW                   & 16.562             \\
+        MT19937                  & 27.601             \\
+        MRG32K3A                 & 16.012             \\
+        MTGP32                   & 15.328             \\
+        Philox 4x32              & 15.216             \\
+        \hline
+    \end{tabular}
+    \label{tab:fuzzygen:generators}
+\end{table}
+%TC:endignore
+
+Kolejny generator, czyli MRG32K3A osiągnął wydajność bardzo zbliżoną do generatora XORWOW. W~jego
+przypadku zbiór danych został wygenerowany w~czasie wynoszącym dokładnie 16 sekund.
+
+Pierwszy znaczący wzrost wydajności zaobserwowano dla generatora MTGP32. Czas potrzebny na wygenerowanie
+zbioru 100 tysięcy porcji danych wyniósł 15.3 sekundy, co oznaczało poprawę wydajności o~7\% w porównaniu z
+domyślnym generatorem XORWOW.
+
+Ostatni z~analizowanych generatorów, czyli Philox 4x32, okazał się najszybszym z~całej grupy
+(Tab. \ref{tab:fuzzygen:generators}). Wygenerował on dane składające się ze 100 tysięcy porcji zbiorów
+w~zaledwie 15.2 sekundy. Jest to wynik o~8\% lepszy niż w przypadku generatora XORWOW.
+
+\section{Program FuzzyCompute}
+
+Program FuzzyCompute charakteryzuje się przeciętnym użyciem mocy obliczeniowej oraz wysoką liczbą 
+operacji odczytu i~zapisu. Pod względem wykorzystania zasobów program jest więc podobny do typowych
+aplikacji \english{Big Data}.
+
+Podobnie jak w~przypadku programu FuzzyGen, przetestowano programy przeznaczone dla platform Hadoop i~Spark.
+Testy zostały przeprowadzone dla dwóch zestawów danych, których wielkość wynosiła odpowiednio
+10 tysięcy i~100 tysięcy porcji danych.
+
+W przypadku programu Hadoop i~zestawu danych składającego się z~10 tysięcy porcji, dla implementacji
+na procesor główny i~graficzny uzyskano zbliżone wyniki (Rys. \ref{fig:fuzzycompute:hadoop:10K}).
+Różnice między wynikami były stosunkowo małe i~nie przekraczały 3 procent.
+
+\begin{figure}[h]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+                ybar,
+                width=0.8\textwidth,
+                height=0.4\textheight,
+                symbolic x coords={Jetson/CPU, Jetson/CUDA, PC},
+                xtick={Jetson/CPU, Jetson/CUDA, PC},
+                bar width=20pt,
+                ymin=0,
+                ylabel={Czas wykonania [s]}
+            ]
+            \addplot [error bars/.cd, y dir=both, y explicit]
+            table [col sep=comma, x=Cluster, y=Avg, y error=STDev]{data/fuzzycompute-10K-hadoop.csv};
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Czasy wykonania FuzzyCompute dla platformy Hadoop i 10 tys. porcji.}
+    \label{fig:fuzzycompute:hadoop:10K}
+\end{figure}
+\newpage
+
+Dla programu Spark testowanego z~tym samym zbiorem danych, algorytm korzystający z~procesora graficznego
+był wolniejszy od odpowiednika działającego na CPU o~około 7~procent (Rys. \ref{fig:fuzzycompute:spark:10K}).
+W~obu przypadkach pojedynczy komputer stacjonarny okazał się znacznie szybszy (od trzech do czterech razy) niż
+klaster minikomputerów Jetson Nano.
+
+\begin{figure}[h]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+                ybar,
+                width=0.8\textwidth,
+                height=0.4\textheight,
+                symbolic x coords={Jetson/CPU, Jetson/CUDA, PC},
+                xtick={Jetson/CPU, Jetson/CUDA, PC},
+                bar width=20pt,
+                ymin=0,
+                ylabel={Czas wykonania [s]}
+            ]
+            \addplot [error bars/.cd, y dir=both, y explicit]
+            table [col sep=comma, x=Cluster, y=Avg, y error=STDev]{data/fuzzycompute-10K-spark.csv};
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Czasy wykonania FuzzyCompute dla platformy Spark i 10 tysięcy porcji.}
+    \label{fig:fuzzycompute:spark:10K}
+\end{figure}
+
+Podczas przetwarzania 100 tysięcy porcji danych przy użyciu programu Hadoop czasy wykonania różniły się
+nieznacznie -- algorytm wykorzystujący procesor graficzny okazał się o~2\% wolniejszy
+(Rys. \ref{fig:fuzzycompute:hadoop:100K}). W~porównaniu z~wcześniejszymi testami programu FuzzyGen
+wzrósł czas wykonania programu Hadoop dla większej objętości danych -- w~tym przypadku o~około 50 procent.
+
+Przeprowadzając testy programu dla platformy Spark z~zestawem danych składającym się z~100 tysięcy
+porcji, zauważono znacznie większe różnice w~wynikach. W tym przypadku algorytm w~języku CUDA był
+wolniejszy od wersji w~Javie o~prawie 21 procent (Rys. \ref{fig:fuzzycompute:spark:100K}). Również
+w~tym przypadku klaster oparty o~Jetsony Nano okazał się od czterech do pięciu razy wolniejszy od
+komputera stacjonarnego.
+
+\begin{figure}[h]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+                ybar,
+                width=0.8\textwidth,
+                height=0.35\textheight,
+                symbolic x coords={Jetson/CPU, Jetson/CUDA, PC},
+                xtick={Jetson/CPU, Jetson/CUDA, PC},
+                bar width=20pt,
+                ymin=0,
+                ylabel={Czas wykonania [s]}
+            ]
+            \addplot [error bars/.cd, y dir=both, y explicit]
+            table [col sep=comma, x=Cluster, y=Avg, y error=STDev]{data/fuzzycompute-100K-hadoop.csv};
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Czasy wykonania FuzzyCompute dla platformy Hadoop i 100 tysięcy porcji.}
+    \label{fig:fuzzycompute:hadoop:100K}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+                ybar,
+                width=0.8\textwidth,
+                height=0.35\textheight,
+                symbolic x coords={Jetson/CPU, Jetson/CUDA, PC},
+                xtick={Jetson/CPU, Jetson/CUDA, PC},
+                bar width=20pt,
+                ymin=0,
+                ylabel={Czas wykonania [s]}
+            ]
+            \addplot [error bars/.cd, y dir=both, y explicit]
+            table [col sep=comma, x=Cluster, y=Avg, y error=STDev]{data/fuzzycompute-100K-spark.csv};
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Czasy wykonania FuzzyCompute dla platformy Spark i 100 tysięcy porcji.}
+    \label{fig:fuzzycompute:spark:100K}
+\end{figure}
+\newpage
+
+\subsection*{Optymalizacje}
+
+Procesory graficzne oparte o~architekturę CUDA są wyposażone w~multiprocesory strumieniowe
+(ang. \english{Streaming Multiprocessor}), z~których każdy posiada dekoder instrukcji, pamięć
+współdzieloną i~wiele jednostek arytmetycznych \cite{computer-arch}. Podczas wykonania programu
+bloki wątków są przypisywane do jednego multiprocesora strumieniowego, a~kiedy liczba wątków w~bloku
+przekracza liczbę jednostek arytmetycznych, procesor musi wykonać je szeregowo.
+
+Model SIMT jest w rzeczywistości realizowany poprzez tzw. osnowę (ang. \english{warp}), czyli zespół wątków odpowiadający
+pojedynczemu wątkowi w modelu SIMD. Osnowa składa się zwykle z~32 wątków, które działają równolegle
+na jednym multiprocesorze strumieniowym i~wykonują tę samą instrukcję na wielu danych.
+Jeśli podczas wykonania wątki wybiorą różne gałęzie programu, może wystąpić zjawisko rozbieżności
+przetwarzania, gdzie wykonanie części wątków jest zawieszane, podczas gdy inne kontynuują obliczenia.
+
+Prowadzi to do częściowego wykorzystania możliwości multiprocesora strumieniowego i~związanego
+z~nim spadku wydajności. Użycie wyrażeń stałych (\lstinline{constexpr} w~języku CUDA) w~implementacji
+kernela (listing \ref{lst:cuda-fuzzy-compute}) pozwoliło na usunięcie znacznej części instrukcji
+warunkowych z~kodu wynikowego i~eliminację zjawiska rozbieżności wątków.
+
+%TC:ignore
+\begin{lstlisting}[
+    language=C,
+    label=lst:cuda-fuzzy-compute,
+    caption={Kernel CudaFuzzyCompute realizujący obliczenia na zbiorach rozmytych.}
+]
+constexpr int SET_SIZE = 4;
+constexpr int SETS_IN_RECORD = 64;
+
+using Set = float[SET_SIZE];
+using Record = Set[SETS_IN_RECORD];
+using RecordEx = Set[SETS_IN_RECORD * 2];
+
+__device__ void fuzzy_union(Set target, const Set source) {
+    for (int i = 0; i < SET_SIZE; ++i) {
+        target[i] = max(target[i], source[i]);
+    }
+}
+
+__device__ void fuzzy_cmpl(Set target, const Set source) {
+    for (int i = 0; i < SET_SIZE; ++i) {
+        target[i] = 1.0f - source[i];
+    }
+}
+
+__device__ void fuzzy_copy(Set target, const Set source) {
+    for (int i = 0; i < SET_SIZE; ++i) {
+        target[i] = source[i];
+    }
+}
+
+
+
+extern "C"
+__global__ void fuzzy_compute(Record records[], RecordEx temp[], const int64_t count) {
+    const int64_t index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index < count) {
+        fuzzy_copy(temp[index][threadIdx.y], records[index][threadIdx.y]);
+        fuzzy_cmpl(temp[index][threadIdx.y + SETS_IN_RECORD], records[index][threadIdx.y]);
+        __syncthreads();
+        for (int j = 0; j < SETS_IN_RECORD * 2; ++j) {
+            int i = threadIdx.y;
+            if (i != j) {
+                fuzzy_union(temp[index][i], temp[index][j]);
+            }
+            i = threadIdx.y + SETS_IN_RECORD;
+            if (i != j) {
+                fuzzy_union(temp[index][i], temp[index][j]);
+            }
+        }
+        __syncthreads();
+        fuzzy_copy(records[index][threadIdx.y], temp[index][threadIdx.y]);
+    }
+}
+\end{lstlisting}
+%TC:endignore
+
+\section{Program FuzzyFilter}
+
+Program FuzzyFilter charakteryzuje się wysokim użyciem mocy obliczeniowej, przy jednoczesnym
+wykonywaniu dużej liczby operacji odczytu i~zapisu. Ze względu na charakterystykę zawartych operacji,
+program FuzzyFilter bardzo dobrze odzwierciedla wyzwania związane z przetwarzaniem \english{Big Data}.
+Zbiory danych wykorzystane w testach wydajności uzyskano poprzez powielenie pliku CSV zawartego
+w załączniku do pracy.
+
+Podczas analizy wyników dla zestawu danych o~wielkości 100 MiB okazało się, że algorytm dla procesora
+graficznego był wolniejszy od odpowiednika działającego na CPU. Różnica w czasach wykonania wynosiła
+około 11 procent na niekorzyść wersji w~języku CUDA (Rys. \ref{fig:fuzzyfilter:100M}). Komputer stacjonarny
+uzyskał wynik ośmiokrotnie lepszy od najkrótszego wykonania na klastrze minikomputerów Jetson Nano.
+
+\begin{figure}[h]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+                ybar,
+                width=0.8\textwidth,
+                height=0.4\textheight,
+                symbolic x coords={Jetson/CPU, Jetson/CUDA, PC},
+                xtick={Jetson/CPU, Jetson/CUDA, PC},
+                bar width=20pt,
+                ymin=0,
+                ylabel={Czas wykonania [s]}
+            ]
+            \addplot [error bars/.cd, y dir=both, y explicit]
+            table [col sep=comma, x=Cluster, y=Avg, y error=STDev]{data/fuzzyfilter-100M.csv};
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Czasy wykonania FuzzyFilter dla platformy Spark i zbioru danych 100 MB.}
+    \label{fig:fuzzyfilter:100M}
+\end{figure}
+\newpage
+
+Dla zestawu danych o~objętości 500 MiB implementacja przeznaczona na procesor graficzny znów okazała
+się wolniejsza. W tym przypadku różnica w~czasie wykonania wynosiła około 21 procent na korzyść wersji
+w~języku Java (Rys. \ref{fig:fuzzyfilter:500M}). Utrzymała się również proporcja między klastrem minikomputerów Jetson, a~komputerem
+stacjonarnym, dla którego czas wykonania znów był osiem razy krótszy.
+
+\begin{figure}[h!]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+                ybar,
+                width=0.8\textwidth,
+                height=0.4\textheight,
+                symbolic x coords={Jetson/CPU, Jetson/CUDA, PC},
+                xtick={Jetson/CPU, Jetson/CUDA, PC},
+                bar width=20pt,
+                ymin=0,
+                ylabel={Czas wykonania [s]}
+            ]
+            \addplot [error bars/.cd, y dir=both, y explicit]
+            table [col sep=comma, x=Cluster, y=Avg, y error=STDev]{data/fuzzyfilter-500M.csv};
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Czasy wykonania FuzzyFilter dla platformy Spark i zbioru danych 500 MB.}
+    \label{fig:fuzzyfilter:500M}
+\end{figure}
+
+Podobnie jak w~przypadku programu FuzzyCompute, implementacja w~języku CUDA nie przyniosła
+oczekiwanego wzrostu wydajności w~porównaniu do wersji dla procesora głównego.
+
+W~trakcie testów zauważono pewne problemy z~implementacją na procesor graficzny. Głównym objawem
+było nieoczekiwane przerywanie zadań Spark, których przyczyną było ustawienie zbyt małego rozmiaru
+sterty dla maszyny wirtualnej Javy. Problem rozwiązano przez zwiększenie maksymalnego rozmiaru sterty,
+co zapewniło stabilne działanie programu.
+
+\subsection*{Optymalizacje}
+
+W~przypadku implementacji dla środowiska CUDA (listing \ref{lst:cuda-fuzzy-filter}), każdy wątek
+CUDA zajmuje się obliczaniem wartości wszystkich funkcji przynależności dla danego rekordu CSV.
+Wartości te są następnie łączone za pomocą T-normy minimum.
+
+Wątki w~obrębie jednej osnowy (ang. \english{warp}), czyli grupy 32 wątków, powinny czytać dane z~pamięci w sposób łączony,
+tj. wątki powinny czytać sąsiednie adresy pamięci. Dostępy łączone zmniejszają liczbę wykonywanych
+transakcji pamięci i~zwiększają jej przepustowość. W~pewnych przypadkach dostęp do pamięci można
+przyspieszyć poprzez zmianę kolejności, w~jakiej wątki czytają lub zapisują dane.
+
+W~ramach optymalizacji programu na procesor graficzny rozmieszczenie danych w~pamięci zostało
+zmienione w~taki sposób, aby wartości kolumn dla każdego filtra rozmytego znajdowały się w~sąsiednich
+komórkach pamięci.
+Kopiowanie danych między pamięcią główną komputera a~pamięcią urządzenia jest kosztowną operacją.
+Z~tego względu ograniczono operacje kopiowania tylko do kolumn, na których zostały określone
+filtry rozmyte.
+\newpage
+
+%TC:ignore
+\begin{lstlisting}[
+    language=C,
+    label=lst:cuda-fuzzy-filter,
+    caption={Kernel CudaFuzzyFilter obliczający stopień przynależności dla rekordu CSV.}
+]
+#define A params[0]
+#define B params[1]
+#define C params[2]
+#define D params[3]
+
+__device__ float membership(const float value, const float params[4]) {
+    if (value <= A || value >= D) {
+        return 0;  // out of range
+    } else if (value >= B && value <= C) {
+        return 1;  // inside plateau
+    } else if (value < B) { // (val > A && val < B)
+        return (value - A) / (B - A); // left triangle
+    } else {  // (val > c && val < d)
+        return (D - value) / (D - C);  // right triangle
+    }
+}
+extern "C"
+__global__ void fuzzy_filter(
+    short member[],
+    const float row_values[],
+    const float member_fn_params[],
+    const float threshold,
+    const int32_t n_rows,
+    const int32_t n_filters
+) {
+    const int32_t index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index < n_rows) {
+        float t_norm = 1.0;
+        for (int32_t i = 0; i < n_filters; ++i) {
+            const float value = row_values[i * n_rows + index];
+            const float* params = &member_fn_params[i * 4];
+            t_norm = min(t_norm, membership(value, params));
+        }
+        member[index] = t_norm > threshold;
+    }
+}
+\end{lstlisting}
+%TC:endignore

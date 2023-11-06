@@ -1,17 +1,67 @@
+\chapter{Podsumowanie} \label{ch:podsumowanie}
 
-\chapter{Podsumowanie}
+Głównym celem pracy była budowa klastra \english{Big Data} składającego się z~minikomputerów
+wspierających akcelerację GPU, a~następnie badanie jego wydajności dla rozproszonych programów na
+platformy Apache Hadoop oraz Apache Spark.
 
-%\begin{itemize}
-%\item Jaki problem rozwiązałæm?
-%\item Jak ten problem rozwiązałæm?
-%\item Jakie są dobre i słabe strony mojego rozwiązania?
-%\item Czy mogę sformułować jakieś rekomendacje?
-%\end{itemize}
+Mając na uwadze potencjalną wydajność i~koszt dostępnych minikomputerów jednopłytkowych, do realizacji
+klastra wybrano model Jetson Nano w~wersji z~4 GB pamięci RAM. Zbudowano klaster składający się z~trzech
+takich minikomputerów, pełniących funkcję węzłów wykonawczych, a~także z~minikomputera Raspberry Pi
+4B, którego zadaniem było zarządzanie całym klastrem.
 
-\begin{itemize}
-\item syntetyczny opis wykonanych prac
-\item wnioski
-\item możliwość rozwoju, kontynuacji prac, potencjalne nowe kierunki
-\item Czy cel pracy zrealizowany? 
-\end{itemize}
+Proces instalacji oprogramowania i~konfiguracji klastra został w~dużej mierze zautomatyzowany przy
+użyciu programu Ansible, co pozwoliło na łatwą instalację platform Hadoop oraz Spark w~wielu
+środowiskach. Opracowano też skrypty do automatycznego uruchamiania testów wydajności i~zbierania
+ich wyników, co ułatwiło porównanie klastra minikomputerów Jetson Nano z~pojedynczym komputerem
+stacjonarnym.
 
+Następnie przygotowano zestaw programów testowych, który posłużył do przeprowadzenia testów wydajności
+na zbudowanym klastrze. Każdy program testowy umożliwia wykonanie zarówno na procesorze głównym,
+jak i~z~wykorzystaniem technologii CUDA, dzięki czemu określono przyrost wydajności wynikający
+z~użycia akceleracji GPU. Co więcej, dla jednego z~programów testowych dostarczono też obsługę
+standardu OpenCL.
+
+Dla testowego zestawu programów wykonano pomiary czasu wykonania, których wyniki posłużyły do dalszej
+analizy i~porównania wydajności klastra z~konkurencyjnymi rozwiązaniami. Testy wydajności zostały
+przeprowadzone z~uwzględnieniem procesu kompilacji Just-In-Time dla języków Java oraz CUDA.
+\newpage
+
+\section{Wnioski}
+
+W testach programu PiEstimation z~próbkowaniem 1 miliona punktów klaster minikomputerów Jetson Nano
+nie osiągnął przyspieszenia względem klastra Raspberry Pi 4 opisanego w~artykule \cite{rpi-cluster-2}.
+Oznaczało to, że klaster komputerów Jetson nie był też konkurencyjny pod względem stosunku wydajności
+do ceny.
+
+Charakterystyka wydajności dla implementacji w języku CUDA stawała się coraz lepsza wraz ze wzrostem
+liczby próbkowanych punktów, jednak dla tych wartości jedynym punktem odniesienia był komputer
+stacjonarny bazujący na procesorze AMD Ryzen.
+
+Dla programu PiEstimation i~próbkowania 100 milionów punktów klaster Jetson Nano osiągnął wynik
+porównywalny z~komputerem PC, a~przy próbkowaniu 1 miliarda punktów okazał się szybszy o~ponad 36\%.
+Z~drugiej strony, estymacja liczby $\pi$ była zadaniem, które w~najmniejszym stopniu przypominało
+aplikacje do przetwarzania zbiorów \english{Big Data}.
+
+Niestety test PiEstimation to jedyny przypadek, w~którym klaster oparty o~minikomputery jednopłytkowe
+mógł równać się z~komputerem stacjonarnym. Testy programów FuzzyGen, FuzzyCompute oraz FuzzyFilter
+wykazały, że wydajność klastra Jetson Nano nie jest konkurencyjna dla zadań rozproszonych
+o~charakterystyce typowej dla obliczeń \english{Big Data}.
+
+Za główny czynnik ograniczający wydajność programów uznano system plików HDFS, który przechowywał
+dane na kartach microSD. W~kolejnych badaniach warto rozpatrzyć użycie innych nośników danych,
+takich jak karty microSD o~wyższych klasach wydajności i~dyski twarde obsługujące interfejs USB 3.0.
+
+W~przypadku programu FuzzyFilter interesującym kierunkiem badań jest dalsza optymalizacja kernela
+CUDA oraz rozszerzenie funkcjonalności programu o~operacje łączeń, grupowania i~filtrowania z~użyciem
+bardziej złożonych operacji logicznych. W tym celu pomocne może okazać się użycie platformy Apache
+Hive wraz z~biblioteką FuzzyHive \cite{fuzzy-hive}, która dostarcza gotowych implementacji operacji
+rozmytych dla dużych zbiorów danych. 
+
+Kolejnym wartym rozważenia kierunkiem badań jest wpływ akceleracji GPU na aplikacje w~innych
+dziedzinach. Minikomputery jednopłytkowe Jetson Nano posiadają wydajne procesory graficzne,
+których zastosowanie może znacząco przyspieszyć aplikacje grafiki komputerowej i~uczenia maszynowego.
+
+Programy testowe oraz skrypty administracyjne wykonane na potrzeby pracy stały się dobrą podstawą do
+pomiarów i~analizy wydajności klastrów obliczeniowych \english{Big Data}. Szczególnie pomocne okazały
+się skrypty instalacyjne Ansible, które znacznie przyspieszyły proces konfiguracji klastra w~wielu
+środowiskach, co znacząco usprawniło proces badań.

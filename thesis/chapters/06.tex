@@ -1,1 +1,1057 @@
+\chapter{Dokumentacja techniczna} \label{ch:techdoc}
 
+\section*{Klasa QmcUtils}
+
+Klasa QmcUtils (listing \ref{lst:qmc-utils}) dostarcza metod użytecznych w implementacjach metody Monte Carlo.
+
+\begin{lstlisting}[
+    language=Java,
+    label=lst:qmc-utils,
+    caption={Implementacja metod użytecznych w implementacjach metody Monte Carlo.}
+]
+public final class QmcUtils {
+
+    private static final int[] BASES = {2, 3};
+    private static final int DIMENSIONS = BASES.length;
+    private static final int[] MAX_DIGITS = {63, 40};
+
+    private QmcUtils() {}
+
+    public static double[] getRandomPoint(long index) {
+        double[] point = new double[DIMENSIONS];
+
+        double[][] q = new double[DIMENSIONS][];
+        int[][] d = new int[DIMENSIONS][];
+        for (int i = 0; i < DIMENSIONS; i++) {
+            q[i] = new double[MAX_DIGITS[i]];
+            d[i] = new int[MAX_DIGITS[i]];
+        }
+
+        for (int i = 0; i < DIMENSIONS; i++) {
+            long k = index;
+            point[i] = 0;
+
+            for (int j = 0; j < MAX_DIGITS[i]; j++) {
+                q[i][j] = (j == 0 ? 1.0 : q[i][j - 1]) / BASES[i];
+                d[i][j] = (int) (k % BASES[i]);
+                k = (k - d[i][j]) / BASES[i];
+                point[i] += d[i][j] * q[i][j];
+            }
+
+            for (int j = 0; j < MAX_DIGITS[i]; j++) {
+                d[i][j]++;
+                point[i] += q[i][j];
+                if (d[i][j] < BASES[i]) {
+                    break;
+                }
+                d[i][j] = 0;
+                point[i] -= (j == 0 ? 1.0 : q[i][j - 1]);
+            }
+        }
+
+        return point;
+    }
+
+    public static boolean isPointInside(double[] point) {
+        final double x = point[0] - 0.5;
+        final double y = point[1] - 0.5;
+
+        return x * x + y * y <= 0.25;
+    }
+}
+\end{lstlisting}
+\newpage
+
+\section*{Klasa FuzzyUtils}
+
+Klasa FuzzyUtils (listing \ref{lst:fuzzy-utils}) implementuje operacje na zbiorach rozmytych na procesorze głównym.
+
+\begin{lstlisting}[
+    language=Java,
+    label=lst:fuzzy-utils,
+    caption={Implementacja operacji rozmytych na procesor główny.}
+]
+public final class FuzzyUtils {
+
+    private static final int SET_SIZE = 4;
+    public static final int SETS_IN_RECORD = 64;
+    public static final int RECORD_SIZE = SET_SIZE * SETS_IN_RECORD;
+    public static final int RECORD_BYTES = RECORD_SIZE * Float.BYTES;
+
+    private FuzzyUtils() {}
+
+    public static float[] fuzzyUnion(float[] target, float[] source) {
+        int n = Math.min(target.length, source.length);
+        for (int i = 0; i < n; ++i) {
+            target[i] = Math.max(target[i], source[i]);
+        }
+        return target;
+    }
+
+    public static float[] fuzzyComplement(float[] set) {
+        int n = set.length;
+        float[] result = new float[n];
+        for (int i = 0; i < n; ++i) {
+            result[i] = 1.0f - set[i];
+        }
+        return result;
+    }
+
+    public static void generateRandomSets(long nRecords, Consumer<byte[]> consumer) {
+        var random = new Random();
+        for (int i = 0; i < nRecords; ++i) {
+            var bytes = new byte[RECORD_BYTES];
+            var buffer = ByteBuffer.wrap(bytes);
+            for (int j = 0; j < RECORD_SIZE; ++j) {
+                buffer.putFloat(random.nextFloat());
+            }
+
+            consumer.accept(bytes);
+        }
+    }
+
+    public static void performOps(byte[] inputRecord) {
+        var buffer = ByteBuffer.wrap(inputRecord);
+
+        var sets = new float[SETS_IN_RECORD * 2][];
+        for (int i = 0; i < SETS_IN_RECORD; ++i) {
+            var set = sets[i] = new float[SET_SIZE];
+            for (int j = 0; j < SET_SIZE; ++j) {
+                set[j] = buffer.getFloat();
+            }
+        }
+        for (int i = 0; i < SETS_IN_RECORD; ++i) {
+            sets[i + SETS_IN_RECORD] = FuzzyUtils.fuzzyComplement(sets[i]);
+        }
+
+        var results = Arrays.stream(sets).map(float[]::clone).toArray(float[][]::new);
+        for (int i = 0; i < sets.length; ++i) {
+            for (int j = 0; j < sets.length; ++j) {
+                if (i != j) {
+                    results[i] = FuzzyUtils.fuzzyUnion(results[i], results[j]);
+                }
+            }
+        }
+
+        buffer.rewind();
+        for (int i = 0; i < SETS_IN_RECORD; ++i) {
+            for (int j = 0; j < SET_SIZE; ++j) {
+                buffer.putFloat(results[i][j]);
+            }
+        }
+    }
+
+    public static void forEachRecord(CUdeviceptr inputRecords, long nRecords, Consumer<byte[]> consumer) {
+        long byteCount = nRecords * RECORD_BYTES;
+        var bytes = new byte[(int) byteCount];
+        cuMemcpyDtoH(Pointer.to(bytes), inputRecords, byteCount);
+
+        var buffer = ByteBuffer.wrap(bytes);
+        for (int i = 0; i < nRecords; ++i) {
+            var writableBuf = new byte[RECORD_BYTES];
+            buffer.get(writableBuf, 0, RECORD_BYTES);
+            consumer.accept(writableBuf);
+        }
+    }
+}
+\end{lstlisting}
+\newpage
+
+\section*{Klasa JcudaUtils}
+
+Klasa JcudaUtils (listing \ref{lst:jcuda-utils}) zawiera metody pomocnicze do wywoływania programów na procesorze graficznym.
+
+\begin{lstlisting}[
+    language=Java,
+    label=lst:jcuda-utils,
+    caption={Metody pomocnicze do wywoływania programów na procesorze graficznym.}
+]
+public final class JcudaUtils {
+
+    private JcudaUtils() {}
+
+    public static CUcontext createCudaContext() {
+        JCudaDriver.setExceptionsEnabled(true);
+        JCurand.setExceptionsEnabled(true);
+        cuInit(0);
+
+        var device = new CUdevice();
+        cuDeviceGet(device, 0);
+
+        var ctx = new CUcontext();
+        cuCtxCreate(ctx, 0, device);
+        return ctx;
+    }
+
+    public static CUdeviceptr allocateDeviceMemory(long size) {
+        var deviceMemory = new CUdeviceptr();
+        cuMemAlloc(deviceMemory, size);
+        return deviceMemory;
+    }
+
+    public static curandGenerator createRandomGenerator() {
+        var generator = new curandGenerator();
+        curandCreateGenerator(generator, CURAND_RNG_PSEUDO_PHILOX4_32_10);
+        curandSetPseudoRandomGeneratorSeed(generator, System.currentTimeMillis());
+        return generator;
+    }
+
+    public static void freeResources(NativePointerObject... resources) {
+        Objects.requireNonNull(resources);
+
+        for (var res : resources) {
+            if (res instanceof curandGenerator) {
+                curandDestroyGenerator((curandGenerator) res);
+            } else if (res instanceof CUdeviceptr) {
+                cuMemFree((CUdeviceptr) res);
+            } else {
+                throw new IllegalArgumentException(String.format("No handler for resource type: %s", res.getClass().getName()));
+            }
+        }
+    }
+
+    public static CUdeviceptr qmcGeneratePoints(long nPoints, long seqOffset) throws IOException {
+        int blockSizeX = 256;
+        int gridSizeX = (int) Math.ceil((double) nPoints / blockSizeX);
+
+        var guesses = JcudaUtils.allocateDeviceMemory(nPoints * Sizeof.SHORT);
+        var kernelParams = Pointer.to(
+                Pointer.to(guesses),
+                Pointer.to(new long[]{nPoints}),
+                Pointer.to(new long[]{seqOffset})
+        );
+
+        cuLaunchKernel(
+                JcudaUtils.loadFunctionFromPtx("/CudaQmcKernel.ptx", "qmc_mapper"),
+                gridSizeX, 1, 1,
+                blockSizeX, 1, 1,
+                0, null,
+                kernelParams, null
+        );
+        cuCtxSynchronize();
+
+        return guesses;
+    }
+
+    public static long sumShortArray(CUdeviceptr inputArray, long size) throws IOException {
+        Objects.requireNonNull(inputArray);
+
+        int blockSizeX = 256;
+        int gridSizeX = (int) Math.ceil((double) size / blockSizeX);
+
+        var partialSums = JcudaUtils.allocateDeviceMemory((long) gridSizeX * Sizeof.SHORT);
+        var kernelParams = Pointer.to(
+                Pointer.to(inputArray),
+                Pointer.to(partialSums),
+                Pointer.to(new long[]{size})
+        );
+
+        cuLaunchKernel(
+                JcudaUtils.loadFunctionFromPtx("/CudaReduction.ptx", "reduce_short"),
+                gridSizeX, 1, 1,
+                blockSizeX, 1, 1,
+                blockSizeX * Sizeof.SHORT, null,
+                kernelParams, null
+        );
+        cuCtxSynchronize();
+
+        var sums = new short[gridSizeX];
+        cuMemcpyDtoH(Pointer.to(sums), partialSums, (long) gridSizeX * Sizeof.SHORT);
+        JcudaUtils.freeResources(partialSums);
+        return IntStream.range(0, sums.length).map(i -> sums[i]).sum();
+    }
+
+    public static CUdeviceptr fuzzyPerformOps(byte[] inputRecords, long nRecords) throws IOException {
+        Objects.requireNonNull(inputRecords);
+
+        int blockSizeX = 1024 / FuzzyUtils.SETS_IN_RECORD;
+        int gridSizeX = (int) Math.ceil((double) inputRecords.length / blockSizeX);
+
+        long nBytes = nRecords * FuzzyUtils.RECORD_BYTES;
+        var records = JcudaUtils.allocateDeviceMemory(nBytes);
+        var temp = JcudaUtils.allocateDeviceMemory(nBytes * 2);
+        cuMemcpyHtoD(records, Pointer.to(inputRecords), nBytes);
+
+        var kernelParams = Pointer.to(
+                Pointer.to(records),
+                Pointer.to(temp),
+                Pointer.to(new long[]{nRecords})
+        );
+        cuLaunchKernel(
+                JcudaUtils.loadFunctionFromPtx("/CudaFuzzyCompute.ptx", "fuzzy_compute"),
+                gridSizeX, 1, 1,
+                blockSizeX, FuzzyUtils.SETS_IN_RECORD, 1,
+                0, null,
+                kernelParams, null
+        );
+        cuCtxSynchronize();
+
+        return records;
+    }
+
+    public static CUdeviceptr fuzzyFilterRows(
+            float[] rowValues, float[] membershipFnParams, float threshold, int nRows, int nFilters
+    ) throws IOException {
+        Objects.requireNonNull(rowValues);
+        Objects.requireNonNull(membershipFnParams);
+
+        long rowValueBytes = (long) rowValues.length * Sizeof.FLOAT;
+        var rowValuesPtr = JcudaUtils.allocateDeviceMemory(rowValueBytes);
+        cuMemcpyHtoD(rowValuesPtr, Pointer.to(rowValues), rowValueBytes);
+
+        long membershipFnParamsBytes = (long) membershipFnParams.length * Sizeof.FLOAT;
+        var membershipFnParamsPtr = JcudaUtils.allocateDeviceMemory(membershipFnParamsBytes);
+        cuMemcpyHtoD(membershipFnParamsPtr, Pointer.to(membershipFnParams), membershipFnParamsBytes);
+
+        int blockSizeX = 256;
+        int gridSizeX = (int) Math.ceil((double) nRows / blockSizeX);
+        var member = JcudaUtils.allocateDeviceMemory((long) nRows * Sizeof.SHORT);
+        var kernelParams = Pointer.to(
+                Pointer.to(member),
+                Pointer.to(rowValuesPtr),
+                Pointer.to(membershipFnParamsPtr),
+                Pointer.to(new float[]{threshold}),
+                Pointer.to(new int[]{nRows}),
+                Pointer.to(new int[]{nFilters})
+        );
+
+        cuLaunchKernel(
+                JcudaUtils.loadFunctionFromPtx("/CudaFuzzyFilter.ptx", "fuzzy_filter"),
+                gridSizeX, 1, 1,
+                blockSizeX, 1, 1,
+                0, null,
+                kernelParams, null
+        );
+        cuCtxSynchronize();
+
+        JcudaUtils.freeResources(rowValuesPtr, membershipFnParamsPtr);
+        return member;
+    }
+
+    public static CUfunction loadFunctionFromPtx(String ptxPath, String funcName) throws IOException {
+        Objects.requireNonNull(ptxPath);
+        Objects.requireNonNull(funcName);
+
+        var resource = JcudaUtils.class.getResourceAsStream(ptxPath);
+        var ptx = JcudaUtils.toNullTerminatedByteArray(resource);
+
+        var module = new CUmodule();
+        cuModuleLoadData(module, ptx);
+
+        var func = new CUfunction();
+        cuModuleGetFunction(func, module, funcName);
+        return func;
+    }
+
+    private static byte[] toNullTerminatedByteArray(InputStream inStream) throws IOException {
+        Objects.requireNonNull(inStream);
+
+        var outStream = new ByteArrayOutputStream();
+        inStream.transferTo(outStream);
+        outStream.write(0);
+        return outStream.toByteArray();
+    }
+}
+\end{lstlisting}
+\newpage
+
+\section*{Klasa CpuQmcMapper} \label{ch:cpu-qmc-mapper}
+
+Klasa CpuQmcMapper (listing \ref{lst:cpu-qmc-mapper}) implementuje komponent Mapper dla
+platformy Apache Hadoop, którego zadaniem w programie PiEstimation jest generowanie punktów na
+podstawie sekwencji Haltona i~zliczanie tych, które znajdują się w obrębie koła. Komponent
+próbkuje punkty dla pewnego przedziału, określonego przez parametry \lstinline{offset} 
+i~\lstinline{"size"}. Wyniki są zapisywane do kontekstu z~kluczem typu \lstinline{BooleanWritable}
+o~wartości true lub false (w~zależności od tego, czy punkt jest wewnątrz czy na zewnątrz)
+i~wartością typu LongWritable, reprezentującą liczbę punktów.
+
+\begin{lstlisting}[
+    language=Java,
+    label=lst:cpu-qmc-mapper,
+    caption={Implementacja komponentu Mapper na procesor główny dla programu PiEstimation.}
+]
+public class CpuQmcMapper extends Mapper<LongWritable, LongWritable, BooleanWritable, LongWritable> {
+
+    public void map(LongWritable offset, LongWritable size, Context context) throws IOException, InterruptedException {
+        long numInside = 0L;
+        long numOutside = 0L;
+
+        for (long i = 0; i < size.get(); ++i) {
+            final double[] point = QmcUtils.getRandomPoint(offset.get() + i);
+            if (QmcUtils.isPointInside(point)) {
+                numInside++;
+            } else {
+                numOutside++;
+            }
+        }
+
+        context.write(new BooleanWritable(true), new LongWritable(numInside));
+        context.write(new BooleanWritable(false), new LongWritable(numOutside));
+    }
+}
+\end{lstlisting}
+\newpage
+
+\section*{Klasa AparapiQmcMapper} \label{ch:aparapi-qmc-mapper}
+
+Klasa AparapiQmcMapper (listing \ref{lst:aparapi-qmc-mapper}) implementuje komponent Mapper dla
+platformy Apache Hadoop, którego zadaniem jest generowanie punktów na podstawie sekwencji
+Haltona i~zliczanie punktów znajdujących się w~środku koła. Generowanie i~klasyfikacja punktów
+jest wywoływane za pomocą klasy Kernel z biblioteki Aparapi, przez co może być wykonywane na
+procesorze graficznym. 
+
+\begin{lstlisting}[
+    language=Java,
+    label=lst:aparapi-qmc-mapper,
+    caption={Implementacja komponentu Mapper dla programu PiEstimation, używająca biblioteki Aparapi.}
+]
+public class AparapiQmcMapper extends Mapper<LongWritable, LongWritable, BooleanWritable, LongWritable> {
+
+    @Override
+    public void map(LongWritable offset, LongWritable size, Context context) throws IOException, InterruptedException {
+        int isize = (int) size.get();
+        int ioffset = (int) offset.get();
+        final boolean[] guesses = new boolean[isize];
+
+        float[][] q = new float[isize][];
+        int[][] d = new int[isize][];
+        for (int i = 0; i < isize; i++) {
+            q[i] = new float[63];
+            d[i] = new int[63];
+        }
+
+        Kernel kernel = new Kernel() {
+
+            private float getRandomPoint(long index, float[] q, int[] d, int base, int maxDigits) {
+
+                float value = 0.0f;
+                long k = index;
+
+                for (int i = 0; i < maxDigits; i++) {
+                    q[i] = (i == 0 ? 1.0f : q[i - 1]) / base;
+                    d[i] = (int) (k % base);
+                    k = (k - d[i]) / base;
+                    value += d[i] * q[i];
+                }
+
+                boolean cont = true;
+                for (int i = 0; i < maxDigits; i++) {
+                    if (cont) {
+                        d[i]++;
+                        value += q[i];
+                        if (d[i] < base) {
+                            cont = false;
+                        } else {
+                            value -= (i == 0 ? 1.0f : q[i - 1]);
+                        }
+                    }
+                }
+
+                return value;
+            }
+
+            @Override
+            public void run() {
+                final int i = getGlobalId();
+                final long indexOffset = i + ioffset;
+
+                final float x = getRandomPoint(indexOffset, q[i], d[i], 2, 63) - 0.5f;
+                final float y = getRandomPoint(indexOffset, q[i], d[i], 3, 40) - 0.5f;
+
+                guesses[i] = (x * x + y * y > 0.25f);
+            }
+        };
+        kernel.execute(Range.create(isize));
+
+        long numInside = 0L;
+        long numOutside = 0L;
+        for (boolean isOutside : guesses) {
+            if (isOutside) {
+                numOutside++;
+            } else {
+                numInside++;
+            }
+        }
+
+        kernel.dispose();
+        context.write(new BooleanWritable(true), new LongWritable(numInside));
+        context.write(new BooleanWritable(false), new LongWritable(numOutside));
+    }
+}
+\end{lstlisting}
+\newpage
+
+\section*{Klasa JcudaQmcMapper} \label{ch:jcuda-qmc-mapper}
+
+Klasa JcudaQmcMapper (listing \ref{lst:jcuda-qmc-mapper}) implementuje komponent Mapper dla
+platformy Hadoop, którego zadaniem jest generowanie punktów na podstawie sekwencji Haltona
+i~zliczanie punktów znajdujących się w~środku koła. Generowanie i~klasyfikacja punktów jest
+wywoływane za pomocą biblioteki JCuda, prez co jest wykonywane na procesorze graficznym. 
+
+\begin{lstlisting}[
+    language=Java,
+    label=lst:jcuda-qmc-mapper,
+    caption={Implementacja komponentu Mapper dla programu PiEstimation, używająca biblioteki JCuda.}
+]
+public class JcudaQmcMapper extends Mapper<LongWritable, LongWritable, BooleanWritable, LongWritable> {
+
+    @Override
+    public void map(LongWritable offset, LongWritable size, Context context) throws IOException, InterruptedException {
+        var ctx = JcudaUtils.createCudaContext();
+
+        var guesses = JcudaUtils.qmcGeneratePoints(size.get(), offset.get());
+        long numOutside = JcudaUtils.sumShortArray(guesses, size.get());
+        long numInside = size.get() - numOutside;
+
+        context.write(new BooleanWritable(true), new LongWritable(numInside));
+        context.write(new BooleanWritable(false), new LongWritable(numOutside));
+        JcudaUtils.freeResources(guesses);
+    }
+}
+\end{lstlisting}
+\newpage
+
+\section*{Klasa CpuQmcFunction} \label{ch:cpu-qmc-function}
+
+Klasa CpuQmcFunction (listing \ref{lst:cpu-qmc-function} jest odpowiednikiem klasy CpuQmcMapper
+(listing \ref{lst:cpu-qmc-mapper}) dla platformy Spark.
+
+\begin{lstlisting}[
+    language=Java,
+    label=lst:cpu-qmc-function,
+    caption={Funkcja na procesor główny dla programu PiEstimation.}
+]
+public class CpuQmcFunction {
+
+    public static Long call(Tuple2<Long, Long> input) {
+        long nSamples = input._2();
+        long offset = input._1() * nSamples;
+
+        long numInside = 0L;
+        for (long i = 0; i < nSamples; ++i) {
+            final double[] point = QmcUtils.getRandomPoint(offset + i);
+            if (QmcUtils.isPointInside(point)) {
+                numInside++;
+            }
+        }
+
+        return numInside;
+    }
+}
+\end{lstlisting}
+\newpage
+
+\section*{Klasa AparapiQmcFunction} \label{ch:aparapi-qmc-function}
+
+Klasa AparapiQmcFunction (listing \ref{lst:aparapi-qmc-function} jest odpowiednikiem klasy AparapiQmcMapper
+(listing \ref{lst:aparapi-qmc-mapper}) dla platformy Spark.
+
+\begin{lstlisting}[
+    language=Java,
+    label=lst:aparapi-qmc-function,
+    caption={Funkcja dla programu PiEstimation, wykorzystująca bibliotekę Aparapi.}
+]
+public class AparapiQmcFunction {
+
+    public static Long call(Tuple2<Long, Long> input) {
+        int nSamples = Math.toIntExact(input._2());
+        int offset = (int) (input._1() * nSamples);
+        final var guesses = new boolean[nSamples];
+
+        var q = new float[nSamples][];
+        var d = new int[nSamples][];
+        for (int i = 0; i < nSamples; ++i) {
+            q[i] = new float[63];
+            d[i] = new int[63];
+        }
+
+        var kernel = new Kernel() {
+
+            private float getRandomPoint(long index, float[] q, int[] d, int base, int maxDigits) {
+
+                float value = 0.0f;
+                long k = index;
+
+                for (int i = 0; i < maxDigits; ++i) {
+                    q[i] = (i == 0 ? 1.0f : q[i - 1]) / base;
+                    d[i] = (int) (k % base);
+                    k = (k - d[i]) / base;
+                    value += d[i] * q[i];
+                }
+
+                boolean cont = true;
+                for (int i = 0; i < maxDigits; ++i) {
+                    if (cont) {
+                        d[i]++;
+                        value += q[i];
+                        if (d[i] < base) {
+                            cont = false;
+                        } else {
+                            value -= (i == 0 ? 1.0f : q[i - 1]);
+                        }
+                    }
+                }
+
+                return value;
+            }
+
+            @Override
+            public void run() {
+                final int i = getGlobalId();
+                final long indexOffset = i + offset;
+
+                final float x = getRandomPoint(indexOffset, q[i], d[i], 2, 63) - 0.5f;
+                final float y = getRandomPoint(indexOffset, q[i], d[i], 3, 40) - 0.5f;
+
+                guesses[i] = (x * x + y * y <= 0.25f);
+            }
+        };
+        kernel.execute(Range.create(nSamples));
+
+        long numInside = 0L;
+        for (boolean isInside : guesses) {
+            if (isInside) {
+                numInside++;
+            }
+        }
+        kernel.dispose();
+
+        return numInside;
+    }
+}
+\end{lstlisting}
+\newpage
+
+\section*{Klasa JcudaQmcFunction} \label{ch:jcuda-qmc-function}
+
+Klasa JcudaQmcFunction (listing \ref{lst:jcuda-qmc-function} jest odpowiednikiem klasy JcudaQmcMapper
+(listing \ref{lst:jcuda-qmc-mapper}) dla platformy Spark.
+
+\begin{lstlisting}[
+    language=Java,
+    label=lst:jcuda-qmc-function,
+    caption={Funkcja dla programu PiEstimation, wykorzystująca bibliotekę JCuda.}
+]
+public class JcudaQmcFunction {
+
+    public static Long call(Tuple2<Long, Long> input) throws IOException {
+        long nSamples = input._2();
+        long offset = input._1() * nSamples;
+        var ctx = JcudaUtils.createCudaContext();
+
+        var guesses = JcudaUtils.qmcGeneratePoints(nSamples, offset);
+        long numOutside = JcudaUtils.sumShortArray(guesses, nSamples);
+        long numInside = nSamples - numOutside;
+
+        JcudaUtils.freeResources(guesses);
+        return numInside;
+    }
+}
+\end{lstlisting}
+\newpage
+
+\section*{Klasa CpuFuzzyGenMapper} \label{ch:cpu-fuzzygen-mapper}
+
+Klasa CpuFuzzyGenMapper (listing \ref{lst:cpu-fuzzygen-mapper}) generuje podaną liczbę losowych
+wartości zmiennoprzecinkowych na procesorze głównym.
+
+\begin{lstlisting}[
+    language=Java,
+    label=lst:cpu-fuzzygen-mapper,
+    caption={Komponent Mapper na procesor główny dla programu FuzzyGen.}
+]
+public class CpuFuzzyGenMapper extends Mapper<LongWritable, NullWritable, NullWritable, BytesWritable> {
+
+    @Override
+    public void map(LongWritable key, NullWritable ignored, Context context) {
+        var nRecords = key.get();
+        FuzzyUtils.generateRandomSets(nRecords, buf -> HadoopJobUtils.writeByteRecord(context, buf));
+    }
+}
+\end{lstlisting}
+\newpage
+
+\section*{Klasa JCudaFuzzyGenMapper} \label{ch:jcuda-fuzzygen-mapper}
+
+Klasa JCudaFuzzyGenMapper (listing \ref{lst:jcuda-fuzzygen-mapper}) generuje podaną liczbę losowych
+wartości zmiennoprzecinkowych na procesorze graficznym.
+
+\begin{lstlisting}[
+    language=Java,
+    label=lst:jcuda-fuzzygen-mapper,
+    caption={Komponent Mapper na procesor graficzny dla programu FuzzyGen.}
+]
+public class JcudaFuzzyGenMapper extends Mapper<LongWritable, NullWritable, NullWritable, BytesWritable> {
+
+    @Override
+    public void map(LongWritable key, NullWritable ignored, Context context) {
+        var ctx = JcudaUtils.createCudaContext();
+        var nRecords = key.get();
+        var floatCount = nRecords * RECORD_SIZE;
+        var byteCount = floatCount * Sizeof.FLOAT;
+
+        var randOutput = JcudaUtils.allocateDeviceMemory(byteCount);
+        var generator = JcudaUtils.createRandomGenerator();
+
+        curandGenerateUniform(generator, randOutput, floatCount);
+        cuCtxSynchronize();
+
+        FuzzyUtils.forEachRecord(randOutput, nRecords, buf -> HadoopJobUtils.writeByteRecord(context, buf));
+        JcudaUtils.freeResources(generator, randOutput);
+    }
+}
+\end{lstlisting}
+\newpage
+
+\section*{Klasa CpuFuzzyGenFunction} \label{ch:cpu-fuzzygen-function}
+
+Klasa CpuFuzzyGenFunction (listing \ref{lst:cpu-fuzzygen-function}) jest odpowiednikiem
+klasy CpuFuzzyGenMapper (listting \ref{lst:cpu-fuzzygen-mapper}) dla platformy Spark.
+
+\begin{lstlisting}[
+    language=Java,
+    label=lst:cpu-fuzzygen-function,
+    caption={Funkcja na procesor główny dla programu FuzzyGen.}
+]
+public class CpuFuzzyGenFunction {
+
+    public static Iterator<byte[]> call(Long nRecords) {
+        var results = new ArrayList<byte[]>();
+        FuzzyUtils.generateRandomSets(nRecords, results::add);
+        return results.iterator();
+    }
+}
+\end{lstlisting}
+\newpage
+
+\section*{Klasa JCudaFuzzyGenFunction} \label{ch:jcuda-fuzzygen-function}
+
+Klasa JCudaFuzzyGenFunction (listing \ref{lst:jcuda-fuzzygen-function}) jest odpowiednikiem
+klasy JCudaFuzzyGenMapper (listting \ref{lst:jcuda-fuzzygen-mapper}) dla platformy Spark.
+
+\begin{lstlisting}[
+    language=Java,
+    label=lst:jcuda-fuzzygen-function,
+    caption={Funkcja na procesor graficzny dla programu FuzzyGen.}
+]
+public class JcudaFuzzyGenFunction {
+
+    public static Iterator<byte[]> call(Long nRecords) {
+        var ctx = JcudaUtils.createCudaContext();
+        long floatCount = nRecords * RECORD_SIZE;
+        long byteCount = floatCount * Sizeof.FLOAT;
+
+        var randOutput = JcudaUtils.allocateDeviceMemory(byteCount);
+        var generator = JcudaUtils.createRandomGenerator();
+
+        curandGenerateUniform(generator, randOutput, floatCount);
+        cuCtxSynchronize();
+
+        var results = new ArrayList<byte[]>();
+        FuzzyUtils.forEachRecord(randOutput, nRecords, results::add);
+        JcudaUtils.freeResources(generator, randOutput);
+        return results.iterator();
+    }
+}
+\end{lstlisting}
+\newpage
+
+\section*{Klasa CpuFuzzyComputeMapper} \label{ch:cpu-fuzzycompute-mapper}
+
+Klasa CpuFuzzyComputeMapper (listing \ref{lst:cpu-fuzzycompute-mapper}) wykonuje operacje na zbiorach rozmytych wykorzystując procesor główny.
+
+\begin{lstlisting}[
+    language=Java,
+    label=lst:cpu-fuzzycompute-mapper,
+    caption={Komponent Mapper na procesor główny dla programu FuzzyCompute.}
+]
+public class CpuFuzzyComputeMapper extends Mapper<NullWritable, BytesWritable, NullWritable, BytesWritable> {
+
+    @Override
+    public void map(NullWritable ignored, BytesWritable value, Context context) throws IOException, InterruptedException {
+        var bytes = value.getBytes();
+        FuzzyUtils.performOps(bytes);
+        context.write(NullWritable.get(), new BytesWritable(bytes));
+    }
+}
+\end{lstlisting}
+\newpage
+
+\section*{Klasa JCudaFuzzyComputeMapper} \label{ch:jcuda-fuzzycompute-mapper}
+
+Klasa JCudaFuzzyComputeMapper (listing \ref{lst:jcuda-fuzzycompute-mapper}) wykonuje operacje na zbiorach rozmytych wykorzystując procesor graficzny.
+
+\begin{lstlisting}[
+    language=Java,
+    label=lst:jcuda-fuzzycompute-mapper,
+    caption={Komponent Mapper na procesor graficzny dla programu FuzzyCompute.}
+]
+public class JcudaFuzzyComputeMapper extends Mapper<NullWritable, BytesWritable, NullWritable, BytesWritable> {
+
+    @Override
+    public void run(Context context) throws IOException, InterruptedException {
+        setup(context);
+
+        try {
+            var ctx = JcudaUtils.createCudaContext();
+            var bytes = new ByteArrayOutputStream();
+            var nRecords = 0L;
+            while (context.nextKeyValue()) {
+                bytes.writeBytes(context.getCurrentValue().getBytes());
+                ++nRecords;
+            }
+
+            var output = JcudaUtils.fuzzyPerformOps(bytes.toByteArray(), nRecords);
+            FuzzyUtils.forEachRecord(output, nRecords, buf -> HadoopJobUtils.writeByteRecord(context, buf));
+            JcudaUtils.freeResources(output);
+        } finally {
+            cleanup(context);
+        }
+    }
+}
+\end{lstlisting}
+\newpage
+
+\section*{Klasa CpuFuzzyComputeFunction} \label{ch:cpu-fuzzycompute-function}
+
+Klasa CpuFuzzyComputeFunction (listing \ref{lst:cpu-fuzzycompute-function}) jest odpowiednikiem
+klasy CpuFuzzyGenMapper (listting \ref{lst:cpu-fuzzycompute-mapper}) dla platformy Spark.
+
+\begin{lstlisting}[
+    language=Java,
+    label=lst:cpu-fuzzycompute-function,
+    caption={Funkcja na procesor główny dla programu FuzzyCompute.}
+]
+public class CpuFuzzyComputeFunction {
+
+    public static Iterator<byte[]> call(List<byte[]> records) {
+        for (var record : records) {
+            FuzzyUtils.performOps(record);
+        }
+        return records.iterator();
+    }
+}
+\end{lstlisting}
+\newpage
+
+\section*{Klasa JCudaFuzzyComputeFunction} \label{ch:jcuda-fuzzycompute-function}
+
+Klasa JCudaFuzzyComputeFunction (listing \ref{lst:jcuda-fuzzycompute-function}) jest odpowiednikiem
+klasy JCudaFuzzyComputeMapper (listting \ref{lst:jcuda-fuzzycompute-mapper}) dla platformy Spark.
+
+\begin{lstlisting}[
+    language=Java,
+    label=lst:jcuda-fuzzycompute-function,
+    caption={Funkcja na procesor graficzny dla programu FuzzyCompute.}
+]
+public class JcudaFuzzyComputeFunction {
+
+    public static Iterator<byte[]> call(List<byte[]> records) throws IOException {
+        var ctx = JcudaUtils.createCudaContext();
+        var bytes = new ByteArrayOutputStream();
+        for (var record : records) {
+            bytes.writeBytes(record);
+        }
+
+        var output = JcudaUtils.fuzzyPerformOps(bytes.toByteArray(), records.size());
+        var results = new ArrayList<byte[]>();
+        FuzzyUtils.forEachRecord(output, records.size(), results::add);
+        JcudaUtils.freeResources(output);
+        return results.iterator();
+    }
+}
+\end{lstlisting}
+\newpage
+
+\section*{Klasa CpuFuzzyFilterFunction} \label{ch:cpu-fuzzyfilter-function}
+
+Klasy CpuFuzzyFilterFunction, FuzzyTNorm oraz FuzzyPredicate (listing \ref{lst:cpu-fuzzyfilter-function})
+realizują operacje filtrowania na zbiorach rozmytych wykorzystując procesor główny.
+
+\begin{lstlisting}[
+    language=Java,
+    label=lst:cpu-fuzzyfilter-function,
+    caption={Funkcja na procesor główny dla programu FuzzyFilter.}
+]
+public class FuzzyTNorm implements FilterFunction<Row>, Serializable {
+
+    private final float threshold;
+    private final List<FuzzyPredicate> membershipList;
+
+    public FuzzyTNorm(float threshold, List<FuzzyPredicate> membershipList) {
+        this.threshold = threshold;
+        this.membershipList = membershipList;
+    }
+
+    public float getThreshold() {
+        return threshold;
+    }
+
+    public List<FuzzyPredicate> getMembershipList() {
+        return membershipList;
+    }
+
+    @Override
+    public boolean call(Row value) throws Exception {
+        return threshold <= membershipList.stream()
+                .mapToDouble(p -> (double) p.getMembership(value))
+                .min()
+                .orElse(1.0);
+    }
+}
+
+public class FuzzyPredicate implements Serializable {
+
+    private final float a;
+    private final float b;
+    private final float c;
+    private final float d;
+    private final String column;
+
+    public FuzzyPredicate(String expr) {
+        String[] parts = expr.split(" ", 5);
+        this.a = Float.parseFloat(parts[0]);
+        this.b = Float.parseFloat(parts[1]);
+        this.c = Float.parseFloat(parts[2]);
+        this.d = Float.parseFloat(parts[3]);
+        this.column = parts[4];
+    }
+
+    public float getA() {
+        return a;
+    }
+
+    public float getB() {
+        return b;
+    }
+
+    public float getC() {
+        return c;
+    }
+
+    public float getD() {
+        return d;
+    }
+
+    public String getColumn() {
+        return column;
+    }
+
+    public float getValue(Row row) {
+        return Float.parseFloat(row.getString(row.fieldIndex(this.column)));
+    }
+
+    public float getMembership(Row row) {
+        float value = getValue(row);
+        if (value <= this.a || value >= this.d) {
+            return 0;  // out of range
+        } else if (value >= this.b && value <= this.c) {
+            return 1;  // inside plateau
+        } else if (value < this.b) { // (val > a && val < b)
+            return (value - this.a) / (this.b - this.a); // left triangle
+        } else {  // (val > c && val < d)
+            return (this.d - value) / (this.d - this.c);  // right triangle
+        }
+    }
+}
+
+public class CpuFuzzyFilterFunction implements FuzzyTNormFilter {
+
+    private final FuzzyTNorm tNorm;
+
+    public CpuFuzzyFilterFunction(FuzzyTNorm tNorm) {
+        this.tNorm = tNorm;
+    }
+
+    @Override
+    public Dataset<Row> apply(Dataset<Row> dataset) {
+        return dataset.filter(tNorm);
+    }
+}
+\end{lstlisting}
+\newpage
+
+\section*{Klasa JCudaFuzzyFilterFunction} \label{ch:jcuda-fuzzyfilter-function}
+
+Klasa JCudaFuzzyFilterFunction (listing \ref{lst:jcuda-fuzzyfilter-function})
+realizuje operacje filtrowania na zbiorach rozmytych wykorzystując procesor graficzny.
+
+\begin{lstlisting}[
+    language=Java,
+    label=lst:jcuda-fuzzyfilter-function,
+    caption={Funkcja na procesor graficzny dla programu FuzzyFilter.}
+]
+public class JcudaFuzzyFilterFunction implements FuzzyTNormFilter, MapPartitionsFunction<Row, Row> {
+
+    private static final int A = 0;
+    private static final int B = 1;
+    private static final int C = 2;
+    private static final int D = 3;
+
+    private final float threshold;
+    private final float[] memberFnParams;
+    private final String[] column;
+
+    public JcudaFuzzyFilterFunction(FuzzyTNorm tNorm) {
+        var membershipList = tNorm.getMembershipList();
+        int nFilters = membershipList.size();
+        this.memberFnParams = new float[nFilters * 4];
+        this.column = new String[nFilters];
+        for (int i = 0; i < nFilters; ++i) {
+            fillMembershipFnParams(i, membershipList.get(i));
+            this.column[i] = membershipList.get(i).getColumn();
+        }
+
+        this.threshold = tNorm.getThreshold();
+    }
+
+    @Override
+    public Dataset<Row> apply(Dataset<Row> dataset) {
+        return dataset.mapPartitions(this, dataset.encoder());
+    }
+
+    @Override
+    public Iterator<Row> call(Iterator<Row> input) throws Exception {
+        var ctx = JcudaUtils.createCudaContext();
+        var rows = new ArrayList<Row>();
+        input.forEachRemaining(rows::add);
+
+        int nRows = rows.size();
+        var memberPtr = JcudaUtils.fuzzyFilterRows(getRowValues(rows), memberFnParams, threshold, nRows, column.length);
+        short[] member = new short[nRows];
+        cuMemcpyDtoH(Pointer.to(member), memberPtr, (long) nRows * Sizeof.SHORT);
+
+        var result = new ArrayList<Row>();
+        for (int i = 0; i < nRows; ++i) {
+            if (member[i] == 1) {
+                result.add(rows.get(i));
+            }
+        }
+        JcudaUtils.freeResources(memberPtr);
+        return result.iterator();
+    }
+
+    private float[] getRowValues(List<Row> rows) {
+        int nRows = rows.size();
+        int nFilters = column.length;
+        float[] values = new float[nFilters * nRows];
+
+        for (int i = 0; i < nFilters; ++i) {
+            for (int j = 0; j < nRows; ++j) {
+                var row = rows.get(j);
+                var value = row.getString(row.fieldIndex(column[i]));
+                values[i * nRows + j] = Float.parseFloat(value);
+            }
+        }
+        return values;
+    }
+
+    private void fillMembershipFnParams(int i, FuzzyPredicate fuzzyPredicate) {
+        this.memberFnParams[i * 4 + A] = fuzzyPredicate.getA();
+        this.memberFnParams[i * 4 + B] = fuzzyPredicate.getB();
+        this.memberFnParams[i * 4 + C] = fuzzyPredicate.getC();
+        this.memberFnParams[i * 4 + D] = fuzzyPredicate.getD();
+    }
+}
+\end{lstlisting}
+\newpage
